@@ -1,0 +1,84 @@
+{
+  "questions": [
+    {
+      "id": "1",
+      "question": "Hva er fartsgrensen i tettbygd strøk hvis ikke annet er skiltet?",
+      "options": ["30 km/t", "40 km/t", "50 km/t", "60 km/t"],
+      "correctAnswer": 2,
+      "explanation": "I tettbygd strøk er fartsgrensen 50 km/t hvis ikke annet er skiltet.",
+      "category": "Fartsregler"
+    },
+    {
+      "id": "2",
+      "question": "Når må du bruke nærlys?",
+      "options": ["Bare i mørket", "Alltid når du kjører", "I tunneler", "Ved dårlig sikt"],
+      "correctAnswer": 1,
+      "explanation": "Du må alltid bruke nærlys når du kjører, både dag og natt.",
+      "category": "Lysbruk"
+    },
+    {
+      "id": "3",
+      "question": "Hva betyr et gult trafikklys?",
+      "options": ["Stopp", "Kjør forsiktig", "Stopp hvis det er trygt", "Øk farten"],
+      "correctAnswer": 2,
+      "explanation": "Gult lys betyr stopp hvis det er trygt å stoppe. Hvis du ikke kan stoppe trygt, kan du kjøre gjennom.",
+      "category": "Trafikklys"
+    },
+    {
+      "id": "4",
+      "question": "Hvor lang bremselengde har du ved 50 km/t på tørr asfalt?",
+      "options": ["10 meter", "15 meter", "25 meter", "35 meter"],
+      "correctAnswer": 2,
+      "explanation": "Ved 50 km/t på tørr asfalt er bremselengden ca. 25 meter pluss reaksjonsstrekning.",
+      "category": "Bremselengde"
+    },
+    {
+      "id": "5",
+      "question": "Når har du vikeplikt for fotgjengere?",
+      "options": ["Bare på gangfelt", "Når du svinger", "Alltid", "Aldri"],
+      "correctAnswer": 1,
+      "explanation": "Du har vikeplikt for fotgjengere når du svinger, også når det ikke er gangfelt.",
+      "category": "Vikeplikt"
+    },
+    {
+      "id": "6",
+      "question": "Hva er promillegrensen for førere under 24 år?",
+      "options": ["0,0", "0,2", "0,5", "0,8"],
+      "correctAnswer": 1,
+      "explanation": "For førere under 24 år er promillegrensen 0,2.",
+      "category": "Promille"
+    },
+    {
+      "id": "7",
+      "question": "Hvor ofte må du ta EU-kontroll på en personbil?",
+      "options": ["Hvert år", "Hvert 2. år", "Første gang etter 4 år, deretter hvert 2. år", "Hvert 3. år"],
+      "correctAnswer": 2,
+      "explanation": "Personbiler må til EU-kontroll første gang 4 år etter førstegangsregistrering, deretter hvert 2. år.",
+      "category": "EU-kontroll"
+    },
+    {
+      "id": "8",
+      "question": "Hva må du gjøre hvis du er innblandet i en trafikkulykke med personskade?",
+      "options": ["Kjøre videre", "Ringe forsikringsselskapet", "Stoppe og hjelpe", "Vente på politiet"],
+      "correctAnswer": 2,
+      "explanation": "Ved trafikkulykke med personskade har du plikt til å stoppe og yte hjelp.",
+      "category": "Ulykker"
+    },
+    {
+      "id": "9",
+      "question": "Når kan du bruke fjernlys?",
+      "options": ["Alltid i mørket", "Når det ikke blender andre", "Bare på motorvei", "Aldri i tettbygd strøk"],
+      "correctAnswer": 1,
+      "explanation": "Du kan bruke fjernlys når det ikke blender andre trafikanter.",
+      "category": "Lysbruk"
+    },
+    {
+      "id": "10",
+      "question": "Hva er minsteavstanden til bilen foran på motorvei?",
+      "options": ["50 meter", "100 meter", "Halve speedometerverdien i meter", "200 meter"],
+      "correctAnswer": 2,
+      "explanation": "På motorvei bør avstanden til bilen foran være minst halve speedometerverdien i meter (f.eks. 50 meter ved 100 km/t).",
+      "category": "Avstand"
+    }
+  ]
+}

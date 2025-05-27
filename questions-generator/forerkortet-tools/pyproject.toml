@@ -1,0 +1,107 @@
+[project]
+name = "forerkortet-tools"
+version = "0.1.0"
+description = "Consolidated tools for generating Norwegian driving license quiz questions"
+authors = [
+    {name = "Espen", email = "espen@example.com"},
+]
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+keywords = ["norwegian", "driving-license", "quiz", "question-generator"]
+
+dependencies = [
+    # Core dependencies
+    "click>=8.1.7",
+    "rich>=13.7.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    # HTML to Markdown
+    "beautifulsoup4>=4.12.3",
+    "html2text>=2024.2.26",
+    "markdownify>=0.12.1",
+    "lxml>=5.1.0",
+    # Road Signs Scraper
+    "requests>=2.31.0",
+    "Pillow>=10.2.0",
+    # Question Generator
+    "openai>=1.12.0",
+    "supabase>=2.15.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-mock>=3.12.0",
+    "mypy>=1.8.0",
+    "ruff>=0.2.0",
+    "black>=24.1.0",
+    "isort>=5.13.0",
+    "pre-commit>=3.6.0",
+]
+
+[project.scripts]
+forerkortet = "forerkortet_tools.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+sources = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+]
+ignore = ["E501"]  # line too long
+
+[tool.ruff.isort]
+known-first-party = ["forerkortet_tools"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--cov=forerkortet_tools --cov-report=term-missing --cov-report=html"
+
+[tool.coverage.run]
+source = ["src/forerkortet_tools"]
+omit = ["*/tests/*", "*/__init__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if __name__ == .__main__.:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
