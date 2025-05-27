@@ -87,10 +87,7 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
         return (
           <LinearGradient
             colors={
-              gradientColors || [
-                premiumTheme.colors.background.gradient.start,
-                premiumTheme.colors.background.gradient.end,
-              ]
+              gradientColors || premiumTheme.colors.background.gradient.background
             }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}

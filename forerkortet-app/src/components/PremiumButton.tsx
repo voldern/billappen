@@ -24,7 +24,7 @@ import { premiumTheme } from "../constants/premiumTheme";
 interface PremiumButtonProps {
   onPress: () => void;
   title: string;
-  variant?: "primary" | "secondary" | "ghost" | "blur";
+  variant?: "primary" | "secondary" | "ghost" | "blur" | "white";
   size?: "small" | "medium" | "large";
   fullWidth?: boolean;
   disabled?: boolean;
@@ -119,7 +119,7 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
             colors={
               disabled
                 ? [premiumTheme.colors.neutral[300], premiumTheme.colors.neutral[400]]
-                : [premiumTheme.colors.primary[500], premiumTheme.colors.primary[600]]
+                : premiumTheme.colors.background.gradient.primary
             }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -127,6 +127,12 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
           >
             {content}
           </LinearGradient>
+        );
+      case "white":
+        return (
+          <View style={[styles.white, getButtonSize()]}>
+            {content}
+          </View>
         );
       case "blur":
         return (
@@ -155,6 +161,11 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
       case "primary":
       case "blur":
         return { color: premiumTheme.colors.text.inverse };
+      case "white":
+        return { 
+          color: premiumTheme.colors.text.primary,
+          fontWeight: "700",
+        };
       case "secondary":
         return { color: premiumTheme.colors.primary[600] };
       case "ghost":
@@ -217,6 +228,17 @@ const styles = StyleSheet.create({
   },
   ghost: {
     backgroundColor: "transparent",
+  },
+  white: {
+    backgroundColor: premiumTheme.colors.background.primary,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 12,
   },
   small: {
     paddingHorizontal: premiumTheme.spacing.md,

@@ -41,4 +41,5 @@ export type RootStackParamList = {
   NewTest: undefined;
   Question: undefined;
   TestResults: { testId: string };
+  Progress: undefined;
 };

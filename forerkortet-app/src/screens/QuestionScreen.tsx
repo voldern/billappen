@@ -24,6 +24,7 @@ import Animated, {
   withSpring,
   withTiming,
   runOnJS,
+  FadeInDown,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { premiumTheme as theme } from "../constants/premiumTheme";
@@ -80,6 +81,19 @@ export default function QuestionScreen({ navigation }: Props) {
     if (selectedAnswer === null) return;
 
     const timeSpent = Date.now() - questionStartTime;
+    
+    // Debug logging for sign questions
+    if (currentQuestion.signId) {
+      console.log("Sign question debug:", {
+        questionId: currentQuestion.id,
+        signId: currentQuestion.signId,
+        selectedAnswer,
+        correctAnswer: currentQuestion.correctAnswer,
+        options: currentQuestion.options,
+      });
+      
+    }
+    
     dispatch(
       answerQuestion({
         questionId: currentQuestion.id,
@@ -231,7 +245,7 @@ export default function QuestionScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <LinearGradient
-        colors={[theme.colors.primary[50], theme.colors.background.primary]}
+        colors={[theme.colors.background.secondary, theme.colors.background.primary]}
         style={styles.gradient}
       >
         {/* Fixed Header */}
@@ -290,53 +304,71 @@ export default function QuestionScreen({ navigation }: Props) {
                   activeOpacity={0.7}
                 >
                   <View style={styles.answerContent}>
-                    <View style={styles.answerIndex}>
-                      <Text style={styles.answerIndexText}>
+                    <View style={[
+                      styles.answerIndex,
+                      showExplanation && index === currentQuestion.correctAnswer && styles.answerIndexCorrect,
+                      showExplanation && index === selectedAnswer && index !== currentQuestion.correctAnswer && styles.answerIndexIncorrect,
+                    ]}>
+                      <Text style={[
+                        styles.answerIndexText,
+                        showExplanation && index === currentQuestion.correctAnswer && styles.answerIndexTextCorrect,
+                        showExplanation && index === selectedAnswer && index !== currentQuestion.correctAnswer && styles.answerIndexTextIncorrect,
+                      ]}>
                         {String.fromCharCode(65 + index)}
                       </Text>
                     </View>
-                    <Text style={styles.answerText}>{option}</Text>
+                    <Text style={[
+                      styles.answerText,
+                      showExplanation && index === currentQuestion.correctAnswer && styles.correctAnswerText,
+                      showExplanation && index === selectedAnswer && index !== currentQuestion.correctAnswer && styles.incorrectAnswerText,
+                    ]}>{option}</Text>
                   </View>
-                  {showExplanation &&
-                    index === currentQuestion.correctAnswer && (
-                      <View style={styles.answerFeedback}>
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={24}
-                          color={theme.colors.semantic.success.main}
-                        />
-                        {selectedAnswer !== currentQuestion.correctAnswer && (
-                          <Text style={styles.correctAnswerLabel}>Riktig svar</Text>
-                        )}
-                      </View>
-                    )}
-                  {showExplanation &&
-                    index === selectedAnswer &&
-                    index !== currentQuestion.correctAnswer && (
+                  {showExplanation && index === currentQuestion.correctAnswer && (
+                    <View style={styles.answerFeedback}>
                       <Ionicons
-                        name="close-circle"
-                        size={24}
-                        color={theme.colors.semantic.error.main}
+                        name="checkmark-circle"
+                        size={28}
+                        color={theme.colors.semantic.success.main}
                       />
-                    )}
+                    </View>
+                  )}
+                  {showExplanation && index === selectedAnswer && index !== currentQuestion.correctAnswer && (
+                    <Ionicons
+                      name="close-circle"
+                      size={28}
+                      color={theme.colors.semantic.error.main}
+                    />
+                  )}
                 </TouchableOpacity>
               ))}
             </View>
 
-            {showExplanation && (
-              <View style={styles.explanationContainer}>
-                <View style={styles.explanationHeader}>
-                  <Ionicons
-                    name="information-circle"
-                    size={20}
-                    color={theme.colors.primary[600]}
-                  />
-                  <Text style={styles.explanationTitle}>Forklaring</Text>
-                </View>
-                <Text style={styles.explanationText}>
-                  {currentQuestion.explanation}
-                </Text>
-              </View>
+            {showExplanation && currentQuestion.explanation && (
+              <Animated.View 
+                style={styles.explanationContainer}
+                entering={FadeInDown.duration(400).springify()}
+              >
+                <LinearGradient
+                  colors={[theme.colors.primary[50], theme.colors.primary[100]]}
+                  style={styles.explanationGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <View style={styles.explanationHeader}>
+                    <View style={styles.explanationIconContainer}>
+                      <Ionicons
+                        name="bulb"
+                        size={24}
+                        color={theme.colors.primary[600]}
+                      />
+                    </View>
+                    <Text style={styles.explanationTitle}>Forklaring</Text>
+                  </View>
+                  <Text style={styles.explanationText}>
+                    {currentQuestion.explanation}
+                  </Text>
+                </LinearGradient>
+              </Animated.View>
             )}
           </Animated.View>
         </ScrollView>
@@ -403,28 +435,32 @@ const createStyles = () => StyleSheet.create({
   },
   header: {
     paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
+    paddingVertical: theme.spacing.lg,
     backgroundColor: theme.colors.background.primary,
-    ...theme.shadows.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.neutral[100],
   },
   progressWrapper: {
     paddingRight: 40, // Space for quit button
   },
   progressBar: {
-    height: 8,
-    backgroundColor: theme.colors.neutral[200],
+    height: 10,
+    backgroundColor: theme.colors.neutral[100],
     borderRadius: theme.borderRadius.full,
     overflow: "hidden",
+    ...theme.shadows.sm,
   },
   progressFill: {
     height: "100%",
     backgroundColor: theme.colors.primary[500],
+    borderRadius: theme.borderRadius.full,
   },
   progressText: {
     fontSize: theme.typography.fontSize.sm,
     color: theme.colors.text.secondary,
-    marginTop: theme.spacing.xs,
+    marginTop: theme.spacing.sm,
     textAlign: "center",
+    fontWeight: "600",
   },
   quitButton: {
     position: "absolute",
@@ -481,39 +517,41 @@ const createStyles = () => StyleSheet.create({
     gap: theme.spacing.sm,
   },
   answer: {
-    backgroundColor: theme.colors.background.secondary,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
+    backgroundColor: theme.colors.background.primary,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
     borderWidth: 2,
-    borderColor: "transparent",
+    borderColor: theme.colors.neutral[200],
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    ...theme.shadows.sm,
   },
   selectedAnswer: {
     backgroundColor: theme.colors.primary[50],
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
     borderWidth: 2,
-    borderColor: theme.colors.primary[300],
+    borderColor: theme.colors.primary[400],
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    ...Platform.select({
+      ios: {
+        shadowColor: theme.colors.primary[400],
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   correctAnswer: {
-    backgroundColor: theme.colors.semantic.success.light + "20",
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
-    borderWidth: 2,
-    borderColor: theme.colors.semantic.success.main,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  correctAnswerHighlighted: {
-    backgroundColor: theme.colors.semantic.success.light + "40",
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
+    backgroundColor: theme.colors.semantic.success.light + "15",
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
     borderWidth: 2,
     borderColor: theme.colors.semantic.success.main,
     flexDirection: "row",
@@ -522,24 +560,47 @@ const createStyles = () => StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: theme.colors.semantic.success.main,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 5,
+        elevation: 6,
+      },
+    }),
+  },
+  correctAnswerHighlighted: {
+    backgroundColor: theme.colors.semantic.success.light + "25",
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    borderWidth: 3,
+    borderColor: theme.colors.semantic.success.main,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    transform: [{ scale: 1.02 }],
+    ...Platform.select({
+      ios: {
+        shadowColor: theme.colors.semantic.success.main,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
       },
     }),
   },
   incorrectAnswer: {
-    backgroundColor: theme.colors.semantic.error.light + "20",
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
+    backgroundColor: theme.colors.semantic.error.light + "10",
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
     borderWidth: 2,
-    borderColor: theme.colors.semantic.error.main,
+    borderColor: theme.colors.semantic.error.light,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    opacity: 0.8,
   },
   answerContent: {
     flexDirection: "row",
@@ -547,56 +608,91 @@ const createStyles = () => StyleSheet.create({
     flex: 1,
   },
   answerIndex: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
     borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.neutral[200],
+    backgroundColor: theme.colors.neutral[100],
     alignItems: "center",
     justifyContent: "center",
     marginRight: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.neutral[200],
   },
   answerIndexText: {
     fontSize: theme.typography.fontSize.base,
-    fontWeight: "600",
+    fontWeight: "700",
     color: theme.colors.text.secondary,
+  },
+  answerIndexCorrect: {
+    backgroundColor: theme.colors.semantic.success.main,
+    borderColor: theme.colors.semantic.success.main,
+  },
+  answerIndexIncorrect: {
+    backgroundColor: theme.colors.semantic.error.main,
+    borderColor: theme.colors.semantic.error.main,
+  },
+  answerIndexTextCorrect: {
+    color: theme.colors.text.inverse,
+  },
+  answerIndexTextIncorrect: {
+    color: theme.colors.text.inverse,
   },
   answerText: {
     fontSize: theme.typography.fontSize.base,
     color: theme.colors.text.primary,
     flex: 1,
+    lineHeight: theme.typography.fontSize.base * theme.typography.lineHeight.normal,
+  },
+  correctAnswerText: {
+    color: theme.colors.semantic.success.dark,
+    fontWeight: "600",
+  },
+  incorrectAnswerText: {
+    color: theme.colors.semantic.error.dark,
+    textDecorationLine: "line-through",
+    textDecorationStyle: "solid",
+    opacity: 0.8,
   },
   answerFeedback: {
     flexDirection: "row",
     alignItems: "center",
-    gap: theme.spacing.xs,
-  },
-  correctAnswerLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.semantic.success.main,
-    fontWeight: "600",
+    marginLeft: theme.spacing.sm,
   },
   explanationContainer: {
-    marginTop: theme.spacing.lg,
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.primary[50],
-    borderRadius: theme.borderRadius.md,
+    marginTop: theme.spacing.xl,
+    borderRadius: theme.borderRadius.xl,
+    overflow: "hidden",
+    ...theme.shadows.lg,
+  },
+  explanationGradient: {
+    padding: theme.spacing.xl,
   },
   explanationHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.lg,
+  },
+  explanationIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: theme.colors.background.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: theme.spacing.md,
+    ...theme.shadows.sm,
   },
   explanationTitle: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: "600",
-    color: theme.colors.primary[700],
-    marginLeft: theme.spacing.sm,
+    fontSize: theme.typography.fontSize.xl,
+    fontWeight: "700",
+    color: theme.colors.primary[800],
   },
   explanationText: {
     fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.secondary,
+    color: theme.colors.primary[700],
     lineHeight:
       theme.typography.fontSize.base * theme.typography.lineHeight.relaxed,
+    fontWeight: "500",
   },
   footer: {
     padding: theme.spacing.lg,

@@ -1,26 +1,40 @@
-// Premium theme inspired by award-winning apps like Focus Traveler and Headspace
+// Premium theme inspired by modern gradient-based design
 export const premiumTheme = {
   colors: {
-    // Primary palette - sophisticated blue with depth
+    // Primary palette - vibrant blue-to-purple gradient
     primary: {
-      50: "#E8F1FF",
-      100: "#D4E5FF",
-      200: "#A8CAFF",
-      300: "#7DADFF",
-      400: "#5590FF",
-      500: "#3B7BF6", // Main brand color
-      600: "#2563EB",
-      700: "#1D4ED8",
-      800: "#1E40AF",
-      900: "#1E3A8A",
+      50: "#F0F9FF",
+      100: "#E0F2FE",
+      200: "#BAE6FD",
+      300: "#7DD3FC",
+      400: "#38BDF8", // Light blue
+      500: "#0EA5E9", // Main blue
+      600: "#0284C7",
+      700: "#0369A1",
+      800: "#075985",
+      900: "#0C4A6E",
     },
     
-    // Accent colors - warm coral for energy and success
+    // Accent colors - vibrant orange/coral
     accent: {
-      light: "#FFE4E1",
-      main: "#FF6B6B",
-      dark: "#FF4757",
-      muted: "#FFA8A8",
+      light: "#FFF7ED",
+      main: "#FB923C", // Orange
+      dark: "#EA580C",
+      muted: "#FDBA74",
+    },
+    
+    // Purple gradient colors
+    purple: {
+      50: "#FAF5FF",
+      100: "#F3E8FF",
+      200: "#E9D5FF",
+      300: "#D8B4FE",
+      400: "#C084FC",
+      500: "#A855F7", // Main purple
+      600: "#9333EA",
+      700: "#7C3AED",
+      800: "#6B21A8",
+      900: "#581C87",
     },
     
     // Success, error, warning with softer tones
@@ -67,7 +81,7 @@ export const premiumTheme = {
       1000: "#16191D",
     },
     
-    // Background colors with subtle gradients
+    // Background colors with vibrant gradients
     background: {
       primary: "#FFFFFF",
       secondary: "#FAFBFC",
@@ -75,8 +89,10 @@ export const premiumTheme = {
       elevated: "#FFFFFF",
       overlay: "rgba(0, 0, 0, 0.5)",
       gradient: {
-        start: "#F8F9FF",
-        end: "#FFFFFF",
+        primary: ["#38BDF8", "#A855F7"], // Blue to purple
+        secondary: ["#FB923C", "#F97316"], // Orange gradient
+        success: ["#10B981", "#059669"], // Green gradient
+        background: ["#E0F2FE", "#F3E8FF"], // Light blue to light purple
       },
     },
     

@@ -7,6 +7,7 @@ import ResultsListScreen from '../screens/ResultsListScreen';
 import NewTestScreen from '../screens/NewTestScreen';
 import QuestionScreen from '../screens/QuestionScreen';
 import TestResultsScreen from '../screens/TestResultsScreen';
+import ProgressScreen from '../screens/ProgressScreen';
 import { premiumTheme } from '../constants/premiumTheme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -53,6 +54,14 @@ export default function AppNavigator() {
           options={{ 
             title: 'Testresultater',
             headerBackVisible: false,
+          }}
+        />
+        <Stack.Screen 
+          name="Progress" 
+          component={ProgressScreen}
+          options={{ 
+            title: 'Fremgang',
+            headerShown: false,
           }}
         />
       </Stack.Navigator>

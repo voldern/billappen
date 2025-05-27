@@ -254,11 +254,11 @@ export default function TestResultsScreen({ navigation, route }: Props) {
           
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={() => navigation.navigate('Landing')}
+            onPress={() => navigation.navigate('ResultsList')}
             activeOpacity={0.8}
           >
-            <Ionicons name="home" size={20} color={theme.colors.primary[600]} />
-            <Text style={styles.secondaryButtonText}>Tilbake til hovedmeny</Text>
+            <Ionicons name="list" size={20} color={theme.colors.primary[600]} />
+            <Text style={styles.secondaryButtonText}>Se alle resultater</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

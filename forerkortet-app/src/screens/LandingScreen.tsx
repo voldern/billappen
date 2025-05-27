@@ -184,18 +184,23 @@ export default function LandingScreen({ navigation }: Props) {
           
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={() => navigation.navigate('ResultsList')}
+            onPress={() => navigation.navigate('Progress')}
             activeOpacity={0.8}
           >
             <View style={styles.secondaryButtonContent}>
-              <Ionicons name="bar-chart" size={24} color={theme.colors.primary[600]} />
-              <Text style={styles.secondaryButtonText}>Se tidligere resultater</Text>
+              <Ionicons name="stats-chart" size={24} color={theme.colors.primary[600]} />
+              <Text style={styles.secondaryButtonText}>Din Fremgang</Text>
             </View>
           </TouchableOpacity>
         </View>
         
         <View style={styles.features}>
           <Text style={styles.featuresTitle}>Hvorfor velge oss?</Text>
+          <View style={styles.featureCard}>
+            <Ionicons name="gift" size={32} color={theme.colors.success.main} />
+            <Text style={styles.featureTitle}>Helt gratis</Text>
+            <Text style={styles.featureDescription}>Ingen skjulte kostnader eller abonnementer</Text>
+          </View>
           <View style={styles.featureCard}>
             <Ionicons name="flash" size={32} color={theme.colors.primary[600]} />
             <Text style={styles.featureTitle}>Moderne læring</Text>

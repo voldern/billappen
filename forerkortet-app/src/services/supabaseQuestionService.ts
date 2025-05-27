@@ -2,38 +2,92 @@ import { Question } from "../types";
 import { supabase } from "../lib/supabase";
 
 export class SupabaseQuestionService {
+  // Helper method to select 1 correct + 3 random incorrect options
+  private selectRandomOptions(allOptions: any[], correctOption: any): any[] {
+    if (allOptions.length <= 4) {
+      // If we have 4 or fewer options, return all of them
+      return allOptions;
+    }
+    
+    // Get all incorrect options
+    const incorrectOptions = allOptions.filter(
+      (opt) => opt.option_index !== correctOption.option_index
+    );
+    
+    // Randomly select 3 incorrect options
+    const shuffled = [...incorrectOptions].sort(() => Math.random() - 0.5);
+    const selectedIncorrect = shuffled.slice(0, 3);
+    
+    // Combine correct option with selected incorrect options
+    const selectedOptions = [correctOption, ...selectedIncorrect];
+    
+    // Shuffle the final array so correct answer isn't always first
+    return selectedOptions.sort(() => Math.random() - 0.5);
+  }
   async getAllQuestions(): Promise<Question[]> {
     try {
-      // Fetch questions with their answer options
-      const { data: questions, error: questionsError } = await supabase
+      // Fetch questions with their answer options using a join
+      // This approach ensures we get all related data in one query
+      const { data: questionsWithOptions, error } = await supabase
         .from("questions")
-        .select("*")
+        .select(`
+          *,
+          answer_options (
+            id,
+            option_text,
+            option_index
+          )
+        `)
         .order("created_at", { ascending: true });
 
-      if (questionsError) throw questionsError;
-
-      // Fetch all answer options
-      const { data: answerOptions, error: optionsError } = await supabase
-        .from("answer_options")
-        .select("*")
-        .order("option_index", { ascending: true });
-
-      if (optionsError) throw optionsError;
+      if (error) throw error;
 
       // Map database format to app format
       const formattedQuestions: Question[] =
-        questions?.map((q) => {
-          const options =
-            answerOptions
-              ?.filter((opt) => opt.question_id === q.id)
-              .sort((a, b) => a.option_index - b.option_index)
-              .map((opt) => opt.option_text) || [];
+        questionsWithOptions?.map((q) => {
+          // Sort options by option_index
+          const allOptions = (q.answer_options || []).sort(
+            (a: any, b: any) => a.option_index - b.option_index
+          );
+          
+          // Find the correct answer option
+          const correctOption = allOptions.find(
+            (opt: any) => opt.option_index === q.correct_answer
+          );
+          
+          if (!correctOption) {
+            console.warn(
+              `Could not find correct answer option for question ${q.id}. ` +
+              `Looking for option_index ${q.correct_answer} among ${allOptions.length} options.`
+            );
+            // Fallback: use first option as correct
+            const selectedOptions = this.selectRandomOptions(allOptions, allOptions[0]);
+            return {
+              id: q.id,
+              question: q.question,
+              options: selectedOptions.map((opt: any) => opt.option_text),
+              correctAnswer: 0,
+              explanation: q.explanation,
+              category: q.category,
+              signId: q.sign_id,
+              imageUrl: q.image_url,
+              difficulty: q.difficulty,
+            };
+          }
+          
+          // Select 1 correct + 3 random incorrect options
+          const selectedOptions = this.selectRandomOptions(allOptions, correctOption);
+          
+          // Find the index of the correct answer in the selected options
+          const correctAnswerIndex = selectedOptions.findIndex(
+            (opt: any) => opt.option_index === correctOption.option_index
+          );
 
           return {
             id: q.id,
             question: q.question,
-            options,
-            correctAnswer: q.correct_answer,
+            options: selectedOptions.map((opt: any) => opt.option_text),
+            correctAnswer: correctAnswerIndex,
             explanation: q.explanation,
             category: q.category,
             signId: q.sign_id,
@@ -51,29 +105,65 @@ export class SupabaseQuestionService {
 
   async getQuestionById(id: string): Promise<Question | undefined> {
     try {
-      const { data: question, error: questionError } = await supabase
+      const { data: question, error } = await supabase
         .from("questions")
-        .select("*")
+        .select(`
+          *,
+          answer_options (
+            id,
+            option_text,
+            option_index
+          )
+        `)
         .eq("id", id)
         .single();
 
-      if (questionError) throw questionError;
-
-      const { data: answerOptions, error: optionsError } = await supabase
-        .from("answer_options")
-        .select("*")
-        .eq("question_id", id)
-        .order("option_index", { ascending: true });
-
-      if (optionsError) throw optionsError;
-
+      if (error) throw error;
       if (!question) return undefined;
+
+      // Sort options by option_index
+      const allOptions = (question.answer_options || []).sort(
+        (a: any, b: any) => a.option_index - b.option_index
+      );
+      
+      // Find the correct answer option
+      const correctOption = allOptions.find(
+        (opt: any) => opt.option_index === question.correct_answer
+      );
+      
+      if (!correctOption) {
+        console.warn(
+          `Could not find correct answer option for question ${question.id}. ` +
+          `Looking for option_index ${question.correct_answer} among ${allOptions.length} options.`
+        );
+        // Fallback: use first option as correct
+        const selectedOptions = this.selectRandomOptions(allOptions, allOptions[0]);
+        return {
+          id: question.id,
+          question: question.question,
+          options: selectedOptions.map((opt: any) => opt.option_text),
+          correctAnswer: 0,
+          explanation: question.explanation,
+          category: question.category,
+          signId: question.sign_id,
+          imageUrl: question.image_url,
+          difficulty: question.difficulty,
+        };
+      }
+      
+      // Select 1 correct + 3 random incorrect options
+      const selectedOptions = this.selectRandomOptions(allOptions, correctOption);
+      
+      // Find the index of the correct answer in the selected options
+      const correctAnswerIndex = selectedOptions.findIndex(
+        (opt: any) => opt.option_index === correctOption.option_index
+      );
 
       return {
         id: question.id,
         question: question.question,
-        options: answerOptions?.map((opt) => opt.option_text) || [],
-        correctAnswer: question.correct_answer,
+        options: selectedOptions.map((opt: any) => opt.option_text),
+        correctAnswer: correctAnswerIndex,
         explanation: question.explanation,
         category: question.category,
         signId: question.sign_id,
@@ -88,37 +178,66 @@ export class SupabaseQuestionService {
 
   async getQuestionsByCategory(category: string): Promise<Question[]> {
     try {
-      const { data: questions, error: questionsError } = await supabase
+      const { data: questionsWithOptions, error } = await supabase
         .from("questions")
-        .select("*")
+        .select(`
+          *,
+          answer_options (
+            id,
+            option_text,
+            option_index
+          )
+        `)
         .eq("category", category)
         .order("created_at", { ascending: true });
 
-      if (questionsError) throw questionsError;
-
-      const questionIds = questions?.map((q) => q.id) || [];
-
-      const { data: answerOptions, error: optionsError } = await supabase
-        .from("answer_options")
-        .select("*")
-        .in("question_id", questionIds)
-        .order("option_index", { ascending: true });
-
-      if (optionsError) throw optionsError;
+      if (error) throw error;
 
       const formattedQuestions: Question[] =
-        questions?.map((q) => {
-          const options =
-            answerOptions
-              ?.filter((opt) => opt.question_id === q.id)
-              .sort((a, b) => a.option_index - b.option_index)
-              .map((opt) => opt.option_text) || [];
+        questionsWithOptions?.map((q) => {
+          // Sort options by option_index
+          const allOptions = (q.answer_options || []).sort(
+            (a: any, b: any) => a.option_index - b.option_index
+          );
+          
+          // Find the correct answer option
+          const correctOption = allOptions.find(
+            (opt: any) => opt.option_index === q.correct_answer
+          );
+          
+          if (!correctOption) {
+            console.warn(
+              `Could not find correct answer option for question ${q.id}. ` +
+              `Looking for option_index ${q.correct_answer} among ${allOptions.length} options.`
+            );
+            // Fallback: use first option as correct
+            const selectedOptions = this.selectRandomOptions(allOptions, allOptions[0]);
+            return {
+              id: q.id,
+              question: q.question,
+              options: selectedOptions.map((opt: any) => opt.option_text),
+              correctAnswer: 0,
+              explanation: q.explanation,
+              category: q.category,
+              signId: q.sign_id,
+              imageUrl: q.image_url,
+              difficulty: q.difficulty,
+            };
+          }
+          
+          // Select 1 correct + 3 random incorrect options
+          const selectedOptions = this.selectRandomOptions(allOptions, correctOption);
+          
+          // Find the index of the correct answer in the selected options
+          const correctAnswerIndex = selectedOptions.findIndex(
+            (opt: any) => opt.option_index === correctOption.option_index
+          );
 
           return {
             id: q.id,
             question: q.question,
-            options,
-            correctAnswer: q.correct_answer,
+            options: selectedOptions.map((opt: any) => opt.option_text),
+            correctAnswer: correctAnswerIndex,
             explanation: q.explanation,
             category: q.category,
             signId: q.sign_id,
