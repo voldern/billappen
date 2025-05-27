@@ -1,23 +1,30 @@
 export interface Question {
   id: string;
-  question: string;
+  text: string;
+  question?: string; // Legacy support
   options: string[];
   correctAnswer: number;
   explanation: string;
   category: string;
   signId?: string;
   imageUrl?: string;
-  difficulty?: string;
+  signImageUrl?: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
 }
 
 export interface TestResult {
   id: string;
-  date: string;
+  userId?: string;
+  date?: string;
+  completedAt?: any;
   score: number;
   totalQuestions: number;
-  duration: number;
-  answers: Answer[];
-  categoryBreakdown?: Record<string, { correct: number; total: number }>;
+  correctAnswers: number;
+  percentage: number;
+  duration?: number;
+  answers?: Answer[];
+  categories?: Record<string, { correct: number; total: number }>;
+  categoryBreakdown?: Record<string, { correct: number; total: number }>; // Legacy support
 }
 
 export interface Answer {
@@ -35,6 +42,14 @@ export interface TestState {
   endTime: number | null;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  description: string;
+  questionCount: number;
+  order: number;
+}
+
 export type RootStackParamList = {
   Landing: undefined;
   Login: undefined;
@@ -46,4 +61,5 @@ export type RootStackParamList = {
   Question: undefined;
   TestResults: { testId: string };
   Progress: undefined;
+  AdminMigration: undefined;
 };

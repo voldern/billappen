@@ -15,7 +15,7 @@ import { RootStackParamList } from "../types";
 import { premiumTheme as theme } from "../constants/premiumTheme";
 import { PremiumCard } from "../components/PremiumCard";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import supabaseQuestionService from "../services/supabaseQuestionService";
+import firebaseQuestionService from "../services/firebaseQuestionService";
 import { useAuthGuard } from "../hooks/useAuthGuard";
 
 type CategorySelectionScreenNavigationProp = NativeStackNavigationProp<
@@ -106,7 +106,7 @@ export default function CategorySelectionScreen({ navigation }: Props) {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const fetchedCategories = await supabaseQuestionService.getCategories();
+      const fetchedCategories = await firebaseQuestionService.getCategories();
       setCategories(fetchedCategories);
     } catch (error) {
       console.error("Error loading categories:", error);

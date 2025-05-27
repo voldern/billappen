@@ -240,9 +240,18 @@ export default function PremiumLandingScreen({ navigation }: Props) {
             </View>
             <View style={styles.headerRight}>
               {user ? (
-                <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-                  <Ionicons name="log-out-outline" size={24} color={premiumTheme.colors.primary[600]} />
-                </TouchableOpacity>
+                <>
+                  {/* Temporary admin button - remove after migration */}
+                  <TouchableOpacity 
+                    onPress={() => navigation.navigate('AdminMigration' as any)} 
+                    style={[styles.logoutButton, { marginRight: 15 }]}
+                  >
+                    <Ionicons name="settings-outline" size={24} color={premiumTheme.colors.primary[600]} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+                    <Ionicons name="log-out-outline" size={24} color={premiumTheme.colors.primary[600]} />
+                  </TouchableOpacity>
+                </>
               ) : (
                 <TouchableOpacity 
                   onPress={() => navigation.navigate('Login')} 
@@ -409,7 +418,8 @@ const createStyles = () =>
       flex: 1,
     },
     headerRight: {
-      alignItems: 'flex-end',
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     welcomeText: {
       fontSize: premiumTheme.typography.fontSize.base,

@@ -31,7 +31,6 @@ import { PremiumCard } from '../components/PremiumCard';
 import { useAuth } from '../contexts/AuthContext';
 import { RouteProp } from '@react-navigation/native';
 import { CommonActions } from '@react-navigation/native';
-import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -46,11 +45,10 @@ interface Props {
 }
 
 export default function LoginScreen({ navigation, route }: Props) {
-  const { signIn, signInWithGoogle, loading: authLoading } = useAuth();
+  const { signIn, loading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // Animation values
@@ -136,42 +134,6 @@ export default function LoginScreen({ navigation, route }: Props) {
     navigation.navigate('Signup');
   };
 
-  const handleGoogleSignIn = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setGoogleLoading(true);
-
-    try {
-      const { error } = await signInWithGoogle();
-      
-      if (error) {
-        if (error.message.includes('Google sign-in only available on Android')) {
-          // Error is already shown in an Alert by the auth context
-        } else if (error.message.includes('avbrutt')) {
-          // User cancelled, no need to show alert
-        } else {
-          Alert.alert('Feil', error.message || 'En feil oppstod med Google-innlogging');
-        }
-      } else {
-        // Successful login
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        
-        // Navigate back to landing page after successful login
-        setTimeout(() => {
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: 'Landing' }],
-            })
-          );
-        }, 100);
-      }
-    } catch (error) {
-      console.error('Google login error:', error);
-      Alert.alert('Feil', 'En uventet feil oppstod. Prøv igjen senere.');
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
 
   return (
     <KeyboardAvoidingView 
@@ -299,33 +261,6 @@ export default function LoginScreen({ navigation, route }: Props) {
                   }
                 />
 
-                {/* Divider for Google Sign In - Android only */}
-                {Platform.OS === 'android' && (
-                  <>
-                    <View style={styles.dividerContainer}>
-                      <View style={styles.divider} />
-                      <Text style={styles.dividerText}>eller</Text>
-                      <View style={styles.divider} />
-                    </View>
-
-                    {/* Google Sign In Button */}
-                    <View style={styles.googleButtonContainer}>
-                      {googleLoading ? (
-                        <View style={styles.googleLoadingContainer}>
-                          <ActivityIndicator size="large" color={theme.colors.primary[600]} />
-                        </View>
-                      ) : (
-                        <GoogleSigninButton
-                          size={GoogleSigninButton.Size.Wide}
-                          color={GoogleSigninButton.Color.Light}
-                          onPress={handleGoogleSignIn}
-                          disabled={loading || authLoading || googleLoading}
-                          style={styles.googleButton}
-                        />
-                      )}
-                    </View>
-                  </>
-                )}
               </PremiumCard>
 
               {/* Sign Up Link */}

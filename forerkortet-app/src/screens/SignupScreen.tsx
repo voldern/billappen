@@ -29,7 +29,6 @@ import { premiumTheme as theme } from '../constants/premiumTheme';
 import { PremiumButton } from '../components/PremiumButton';
 import { PremiumCard } from '../components/PremiumCard';
 import { useAuth } from '../contexts/AuthContext';
-import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
 import { CommonActions } from '@react-navigation/native';
 
 type SignupScreenNavigationProp = NativeStackNavigationProp<
@@ -42,12 +41,12 @@ interface Props {
 }
 
 export default function SignupScreen({ navigation }: Props) {
-  const { signUp, signInWithGoogle, loading: authLoading } = useAuth();
+  const { signUp, loading: authLoading } = useAuth();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -77,8 +76,13 @@ export default function SignupScreen({ navigation }: Props) {
   }));
 
   const validateForm = () => {
-    if (!email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Feil', 'Vennligst fyll ut alle feltene');
+      return false;
+    }
+
+    if (name.trim().length < 2) {
+      Alert.alert('Feil', 'Navnet må være minst 2 tegn langt');
       return false;
     }
 
@@ -109,7 +113,7 @@ export default function SignupScreen({ navigation }: Props) {
     setLoading(true);
 
     try {
-      const { error } = await signUp(email.trim().toLowerCase(), password);
+      const { error } = await signUp(email.trim().toLowerCase(), password, name.trim());
       
       if (error) {
         if (error.message.includes('User already registered')) {
@@ -124,16 +128,7 @@ export default function SignupScreen({ navigation }: Props) {
         }
       } else {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        Alert.alert(
-          'Registrering vellykket!',
-          'Vi har sendt en bekreftelseslenke til din e-post. Klikk på lenken for å aktivere kontoen din.',
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.navigate('Login'),
-            },
-          ]
-        );
+        // User will be automatically logged in and redirected by AuthContext
       }
     } catch (error) {
       console.error('Signup error:', error);
@@ -147,42 +142,6 @@ export default function SignupScreen({ navigation }: Props) {
     navigation.navigate('Login');
   };
 
-  const handleGoogleSignIn = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setGoogleLoading(true);
-
-    try {
-      const { error } = await signInWithGoogle();
-      
-      if (error) {
-        if (error.message.includes('Google sign-in only available on Android')) {
-          // Error is already shown in an Alert by the auth context
-        } else if (error.message.includes('avbrutt')) {
-          // User cancelled, no need to show alert
-        } else {
-          Alert.alert('Feil', error.message || 'En feil oppstod med Google-innlogging');
-        }
-      } else {
-        // Successful login
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        
-        // Navigate back to landing page after successful login
-        setTimeout(() => {
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: 'Landing' }],
-            })
-          );
-        }, 100);
-      }
-    } catch (error) {
-      console.error('Google signup error:', error);
-      Alert.alert('Feil', 'En uventet feil oppstod. Prøv igjen senere.');
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
 
   const getPasswordStrength = (password: string) => {
     let strength = 0;
@@ -277,6 +236,28 @@ export default function SignupScreen({ navigation }: Props) {
             {/* Signup Form */}
             <Animated.View style={[styles.formSection, formAnimatedStyle]}>
               <PremiumCard variant="elevated" padding="large" style={styles.formCard}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Navn</Text>
+                  <View style={styles.inputWrapper}>
+                    <Ionicons
+                      name="person-outline"
+                      size={20}
+                      color={theme.colors.text.secondary}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.textInput}
+                      value={name}
+                      onChangeText={setName}
+                      placeholder="Ditt navn"
+                      placeholderTextColor={theme.colors.text.secondary}
+                      autoCapitalize="words"
+                      autoCorrect={false}
+                      editable={!loading && !authLoading}
+                    />
+                  </View>
+                </View>
+
                 <View style={styles.inputContainer}>
                   <Text style={styles.inputLabel}>E-postadresse</Text>
                   <View style={styles.inputWrapper}>
@@ -408,33 +389,6 @@ export default function SignupScreen({ navigation }: Props) {
                   }
                 />
 
-                {/* Divider for Google Sign In - Android only */}
-                {Platform.OS === 'android' && (
-                  <>
-                    <View style={styles.dividerContainer}>
-                      <View style={styles.divider} />
-                      <Text style={styles.dividerText}>eller</Text>
-                      <View style={styles.divider} />
-                    </View>
-
-                    {/* Google Sign In Button */}
-                    <View style={styles.googleButtonContainer}>
-                      {googleLoading ? (
-                        <View style={styles.googleLoadingContainer}>
-                          <ActivityIndicator size="large" color={theme.colors.primary[600]} />
-                        </View>
-                      ) : (
-                        <GoogleSigninButton
-                          size={GoogleSigninButton.Size.Wide}
-                          color={GoogleSigninButton.Color.Light}
-                          onPress={handleGoogleSignIn}
-                          disabled={loading || authLoading || googleLoading}
-                          style={styles.googleButton}
-                        />
-                      )}
-                    </View>
-                  </>
-                )}
               </PremiumCard>
 
               {/* Login Link */}

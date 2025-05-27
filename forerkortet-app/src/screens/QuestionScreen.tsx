@@ -30,7 +30,8 @@ import * as Haptics from "expo-haptics";
 import { premiumTheme as theme } from "../constants/premiumTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import supabaseQuestionService from "../services/supabaseQuestionService";
+import firebaseQuestionService from "../services/firebaseQuestionService";
+import { useAuth } from "../contexts/AuthContext";
 import { getSignImage } from "../assets/signImages";
 
 const { width, height } = Dimensions.get("window");
@@ -46,6 +47,7 @@ interface Props {
 
 export default function QuestionScreen({ navigation }: Props) {
   const dispatch = useDispatch<AppDispatch>();
+  const { user } = useAuth();
   const { questions, currentQuestionIndex, answers, startTime } = useSelector(
     (state: RootState) => state.test
   );
@@ -172,21 +174,26 @@ export default function QuestionScreen({ navigation }: Props) {
         results.unshift(testResult);
         await AsyncStorage.setItem("testResults", JSON.stringify(results));
 
-        // Save to Supabase
-        const supabaseTestId = await supabaseQuestionService.saveTestResult({
-          score: testResult.score,
-          totalQuestions: testResult.totalQuestions,
-          duration: Math.floor(testResult.duration / 1000), // Convert to seconds
-          answers: testResult.answers.map((answer) => ({
-            questionId: answer.questionId,
-            selectedAnswer: answer.selectedAnswer,
-            isCorrect: answer.isCorrect,
-            timeSpent: Math.floor(answer.timeSpent / 1000), // Convert to seconds
-          })),
-        });
+        // Save to Firebase if user is authenticated
+        if (user) {
+          const firebaseTestId = await firebaseQuestionService.saveTestResult(user.uid, {
+            score: testResult.score,
+            totalQuestions: testResult.totalQuestions,
+            correctAnswers: allAnswers.filter(a => a.isCorrect).length,
+            percentage: (allAnswers.filter(a => a.isCorrect).length / questions.length) * 100,
+            duration: Math.floor(testResult.duration / 1000), // Convert to seconds
+            categories: categoryBreakdown,
+            answers: testResult.answers.map((answer) => ({
+              questionId: answer.questionId,
+              selectedAnswer: answer.selectedAnswer,
+              isCorrect: answer.isCorrect,
+              timeSpent: Math.floor(answer.timeSpent / 1000), // Convert to seconds
+            })),
+          });
 
-        if (supabaseTestId) {
-          console.log("Test result saved to Supabase with ID:", supabaseTestId);
+          if (firebaseTestId) {
+            console.log("Test result saved to Firebase with ID:", firebaseTestId);
+          }
         }
       } catch (error) {
         console.error("Error saving result:", error);
@@ -282,7 +289,7 @@ export default function QuestionScreen({ navigation }: Props) {
               </Text>
             </View>
 
-            <Text style={styles.question}>{currentQuestion.question}</Text>
+            <Text style={styles.question}>{currentQuestion.text || currentQuestion.question}</Text>
 
             {currentQuestion.signId && getSignImage(currentQuestion.signId) && (
               <View style={styles.imageContainer}>

@@ -12,6 +12,7 @@ import NewTestScreen from '../screens/NewTestScreen';
 import QuestionScreen from '../screens/QuestionScreen';
 import TestResultsScreen from '../screens/TestResultsScreen';
 import ProgressScreen from '../screens/ProgressScreen';
+import AdminMigrationScreen from '../screens/AdminMigrationScreen';
 import { premiumTheme } from '../constants/premiumTheme';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -113,6 +114,14 @@ export default function AppNavigator() {
           options={{ 
             title: 'Fremgang',
             headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="AdminMigration" 
+          component={AdminMigrationScreen}
+          options={{ 
+            title: 'Admin Migration',
+            headerShown: true,
           }}
         />
       </Stack.Navigator>

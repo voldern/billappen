@@ -28,7 +28,7 @@ import * as Haptics from "expo-haptics";
 import { RootStackParamList } from "../types";
 import { AppDispatch } from "../store";
 import { startTest } from "../store/testSlice";
-import supabaseQuestionService from "../services/supabaseQuestionService";
+import firebaseQuestionService from "../services/firebaseQuestionService";
 import { premiumTheme } from "../constants/premiumTheme";
 import { PremiumButton } from "../components/PremiumButton";
 import { PremiumCard } from "../components/PremiumCard";
@@ -102,13 +102,13 @@ export default function NewTestScreen({ navigation, route }: Props) {
       let selectedQuestions;
       if (selectedCategory) {
         // Get questions from specific category
-        const categoryQuestions = await supabaseQuestionService.getQuestionsByCategory(selectedCategory);
+        const categoryQuestions = await firebaseQuestionService.getQuestionsByCategory(selectedCategory);
         // Take up to 10 random questions from the category
         const shuffled = [...categoryQuestions].sort(() => Math.random() - 0.5);
         selectedQuestions = shuffled.slice(0, Math.min(10, shuffled.length));
       } else {
         // Get random questions from all categories
-        selectedQuestions = await supabaseQuestionService.getRandomQuestions(10);
+        selectedQuestions = await firebaseQuestionService.getRandomQuestions(10);
       }
 
       if (selectedQuestions.length === 0) {
@@ -139,10 +139,10 @@ export default function NewTestScreen({ navigation, route }: Props) {
       let allQuestions;
       if (selectedCategory) {
         // Get all questions from specific category
-        allQuestions = await supabaseQuestionService.getQuestionsByCategory(selectedCategory);
+        allQuestions = await firebaseQuestionService.getQuestionsByCategory(selectedCategory);
       } else {
         // Get all questions from all categories
-        allQuestions = await supabaseQuestionService.getAllQuestions();
+        allQuestions = await firebaseQuestionService.getAllQuestions();
       }
 
       if (allQuestions.length === 0) {
