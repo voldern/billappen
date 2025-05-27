@@ -8,7 +8,7 @@ import Animated, {
   withSpring,
   withSequence,
 } from 'react-native-reanimated';
-import { theme } from '../constants/theme';
+import { premiumTheme as theme } from '../constants/premiumTheme';
 
 interface GradientButtonProps {
   onPress: () => void;
@@ -30,13 +30,14 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
   disabled = false,
 }) => {
   const scale = useSharedValue(1);
+  const styles = createStyles();
 
   const getGradientColors = () => {
     switch (variant) {
       case 'secondary':
-        return [theme.colors.secondary[500], theme.colors.secondary[700]];
+        return [theme.colors.accent.main, theme.colors.accent.dark];
       case 'success':
-        return [theme.colors.success.light, theme.colors.success.dark];
+        return [theme.colors.semantic.success.main, theme.colors.semantic.success.dark];
       default:
         return [theme.colors.primary[500], theme.colors.primary[700]];
     }
@@ -85,7 +86,7 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   gradient: {
     paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.xl,

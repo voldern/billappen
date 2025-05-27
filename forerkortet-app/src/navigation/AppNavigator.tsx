@@ -2,11 +2,12 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
-import LandingScreen from '../screens/LandingScreen';
+import PremiumLandingScreen from '../screens/PremiumLandingScreen';
 import ResultsListScreen from '../screens/ResultsListScreen';
 import NewTestScreen from '../screens/NewTestScreen';
 import QuestionScreen from '../screens/QuestionScreen';
 import TestResultsScreen from '../screens/TestResultsScreen';
+import { premiumTheme } from '../constants/premiumTheme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -16,19 +17,17 @@ export default function AppNavigator() {
       <Stack.Navigator
         initialRouteName="Landing"
         screenOptions={{
-          headerStyle: {
-            backgroundColor: '#2563eb',
+          headerShown: false,
+          contentStyle: {
+            backgroundColor: premiumTheme.colors.background.primary,
           },
-          headerTintColor: '#fff',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
+          animation: 'slide_from_right',
         }}
       >
         <Stack.Screen 
           name="Landing" 
-          component={LandingScreen}
-          options={{ title: 'Førerkort Øving' }}
+          component={PremiumLandingScreen}
+          options={{ headerShown: false }}
         />
         <Stack.Screen 
           name="ResultsList" 

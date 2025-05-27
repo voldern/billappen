@@ -26,7 +26,7 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { theme } from "../constants/theme";
+import { premiumTheme as theme } from "../constants/premiumTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import supabaseQuestionService from "../services/supabaseQuestionService";
@@ -57,6 +57,8 @@ export default function QuestionScreen({ navigation }: Props) {
 
   const currentQuestion = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+
+  const styles = createStyles();
 
   useEffect(() => {
     setQuestionStartTime(Date.now());
@@ -247,7 +249,7 @@ export default function QuestionScreen({ navigation }: Props) {
             <Ionicons
               name="close-circle"
               size={32}
-              color={theme.colors.error.main}
+              color={theme.colors.semantic.error.main}
             />
           </TouchableOpacity>
         </View>
@@ -301,7 +303,7 @@ export default function QuestionScreen({ navigation }: Props) {
                         <Ionicons
                           name="checkmark-circle"
                           size={24}
-                          color={theme.colors.success.main}
+                          color={theme.colors.semantic.success.main}
                         />
                         {selectedAnswer !== currentQuestion.correctAnswer && (
                           <Text style={styles.correctAnswerLabel}>Riktig svar</Text>
@@ -314,7 +316,7 @@ export default function QuestionScreen({ navigation }: Props) {
                       <Ionicons
                         name="close-circle"
                         size={24}
-                        color={theme.colors.error.main}
+                        color={theme.colors.semantic.error.main}
                       />
                     )}
                 </TouchableOpacity>
@@ -369,7 +371,7 @@ export default function QuestionScreen({ navigation }: Props) {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={[theme.colors.success.main, theme.colors.success.dark]}
+                colors={[theme.colors.semantic.success.main, theme.colors.semantic.success.dark]}
                 style={styles.buttonGradient}
               >
                 <Text style={styles.buttonText}>
@@ -391,7 +393,7 @@ export default function QuestionScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.primary[50],
@@ -499,27 +501,27 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   correctAnswer: {
-    backgroundColor: theme.colors.success.light + "20",
+    backgroundColor: theme.colors.semantic.success.light + "20",
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
     borderWidth: 2,
-    borderColor: theme.colors.success.main,
+    borderColor: theme.colors.semantic.success.main,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   correctAnswerHighlighted: {
-    backgroundColor: theme.colors.success.light + "40",
+    backgroundColor: theme.colors.semantic.success.light + "40",
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
     borderWidth: 2,
-    borderColor: theme.colors.success.main,
+    borderColor: theme.colors.semantic.success.main,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     ...Platform.select({
       ios: {
-        shadowColor: theme.colors.success.main,
+        shadowColor: theme.colors.semantic.success.main,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
@@ -530,11 +532,11 @@ const styles = StyleSheet.create({
     }),
   },
   incorrectAnswer: {
-    backgroundColor: theme.colors.error.light + "20",
+    backgroundColor: theme.colors.semantic.error.light + "20",
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
     borderWidth: 2,
-    borderColor: theme.colors.error.main,
+    borderColor: theme.colors.semantic.error.main,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -570,7 +572,7 @@ const styles = StyleSheet.create({
   },
   correctAnswerLabel: {
     fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.success.main,
+    color: theme.colors.semantic.success.main,
     fontWeight: "600",
   },
   explanationContainer: {

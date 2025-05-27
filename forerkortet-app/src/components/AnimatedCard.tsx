@@ -8,7 +8,7 @@ import Animated, {
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
-import { theme } from '../constants/theme';
+import { premiumTheme as theme } from '../constants/theme';
 
 interface AnimatedCardProps {
   children: React.ReactNode;

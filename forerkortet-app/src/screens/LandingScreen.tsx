@@ -18,7 +18,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { GradientButton } from '../components/GradientButton';
-import { theme } from '../constants/theme';
+import { premiumTheme as theme } from '../constants/premiumTheme';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
@@ -38,6 +38,8 @@ export default function LandingScreen({ navigation }: Props) {
   const carRotation = useSharedValue(0);
   const statsSlide = useSharedValue(-100);
   const floatY = useSharedValue(0);
+  
+  const styles = createStyles();
 
   useEffect(() => {
     loadResults();
@@ -146,10 +148,10 @@ export default function LandingScreen({ navigation }: Props) {
             
             <View style={styles.statCard}>
               <LinearGradient
-                colors={[theme.colors.secondary[100], theme.colors.secondary[200]]}
+                colors={[theme.colors.accent.light, theme.colors.accent.muted]}
                 style={styles.statGradient}
               >
-                <Ionicons name="trending-up" size={24} color={theme.colors.secondary[700]} />
+                <Ionicons name="trending-up" size={24} color={theme.colors.accent.dark} />
                 <Text style={styles.statLabel} numberOfLines={2} adjustsFontSizeToFit>
                   Gjennomsnitt
                 </Text>
@@ -200,7 +202,7 @@ export default function LandingScreen({ navigation }: Props) {
             <Text style={styles.featureDescription}>Interaktiv og engasjerende måte å lære på</Text>
           </View>
           <View style={styles.featureCard}>
-            <Ionicons name="analytics" size={32} color={theme.colors.secondary[600]} />
+            <Ionicons name="analytics" size={32} color={theme.colors.accent.main} />
             <Text style={styles.featureTitle}>Detaljert statistikk</Text>
             <Text style={styles.featureDescription}>Følg fremgangen din over tid</Text>
           </View>
@@ -210,7 +212,7 @@ export default function LandingScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   container: {
     flex: 1,
   },

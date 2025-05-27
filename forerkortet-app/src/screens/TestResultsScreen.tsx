@@ -17,7 +17,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { theme } from '../constants/theme';
+import { premiumTheme as theme } from '../constants/premiumTheme';
 import { Ionicons } from '@expo/vector-icons';
 import { GradientButton } from '../components/GradientButton';
 import { ConfettiPiece } from '../components/ConfettiPiece';
@@ -42,6 +42,8 @@ export default function TestResultsScreen({ navigation, route }: Props) {
   const statsOpacity = useSharedValue(0);
   const categorySlide = useSharedValue(50);
   const [showConfetti, setShowConfetti] = React.useState(false);
+  
+  const styles = createStyles();
 
   useEffect(() => {
     if (!testResult) return;
@@ -90,9 +92,9 @@ export default function TestResultsScreen({ navigation, route }: Props) {
   const passed = percentage >= 85;
   
   const getScoreColor = () => {
-    if (percentage >= 90) return theme.colors.success.main;
-    if (percentage >= 75) return theme.colors.warning.main;
-    return theme.colors.error.main;
+    if (percentage >= 90) return theme.colors.semantic.success.main;
+    if (percentage >= 75) return theme.colors.semantic.warning.main;
+    return theme.colors.semantic.error.main;
   };
 
   const getMotivationalMessage = () => {
@@ -137,7 +139,7 @@ export default function TestResultsScreen({ navigation, route }: Props) {
         {showConfetti && (
           <View style={styles.confetti} pointerEvents="none">
             {[...Array(12)].map((_, i) => {
-              const colors = [theme.colors.primary[400], theme.colors.secondary[400], theme.colors.success.main, theme.colors.warning.main, '#FFD700'];
+              const colors = [theme.colors.primary[400], theme.colors.accent.main, theme.colors.semantic.success.main, theme.colors.semantic.warning.main, '#FFD700'];
               return (
                 <ConfettiPiece
                   key={i}
@@ -165,13 +167,13 @@ export default function TestResultsScreen({ navigation, route }: Props) {
             </LinearGradient>
           </Animated.View>
           
-          <View style={[styles.passedBadge, { backgroundColor: passed ? theme.colors.success.light + '20' : theme.colors.error.light + '20' }]}>
+          <View style={[styles.passedBadge, { backgroundColor: passed ? theme.colors.semantic.success.light + '20' : theme.colors.semantic.error.light + '20' }]}>
             <Ionicons 
               name={passed ? "checkmark-circle" : "close-circle"} 
               size={24} 
-              color={passed ? theme.colors.success.main : theme.colors.error.main} 
+              color={passed ? theme.colors.semantic.success.main : theme.colors.semantic.error.main} 
             />
-            <Text style={[styles.passedText, { color: passed ? theme.colors.success.main : theme.colors.error.main }]}>
+            <Text style={[styles.passedText, { color: passed ? theme.colors.semantic.success.main : theme.colors.semantic.error.main }]}>
               {passed ? 'BESTÅTT' : 'IKKE BESTÅTT'}
             </Text>
           </View>
@@ -195,10 +197,10 @@ export default function TestResultsScreen({ navigation, route }: Props) {
           
           <View style={styles.statCard}>
             <LinearGradient
-              colors={[theme.colors.secondary[100], theme.colors.secondary[200]]}
+              colors={[theme.colors.accent.light, theme.colors.accent.muted]}
               style={styles.statGradient}
             >
-              <Ionicons name="speedometer" size={24} color={theme.colors.secondary[700]} />
+              <Ionicons name="speedometer" size={24} color={theme.colors.accent.dark} />
               <Text style={styles.statLabel} numberOfLines={2} adjustsFontSizeToFit>
                 Gjennomsnitt per spørsmål
               </Text>
@@ -213,7 +215,7 @@ export default function TestResultsScreen({ navigation, route }: Props) {
           <Text style={styles.sectionTitle}>Kategorifordeling</Text>
           {Object.entries(testResult.categoryBreakdown || {}).map(([category, stats], index) => {
             const categoryPercentage = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
-            const categoryColor = categoryPercentage >= 85 ? theme.colors.success.main : categoryPercentage >= 70 ? theme.colors.warning.main : theme.colors.error.main;
+            const categoryColor = categoryPercentage >= 85 ? theme.colors.semantic.success.main : categoryPercentage >= 70 ? theme.colors.semantic.warning.main : theme.colors.semantic.error.main;
             
             return (
               <View
@@ -264,7 +266,7 @@ export default function TestResultsScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   container: {
     flex: 1,
   },
