@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types";
+import { RootStackParamList, Category } from "../types";
 import { premiumTheme as theme } from "../constants/premiumTheme";
 import { PremiumCard } from "../components/PremiumCard";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -94,7 +94,7 @@ const categoryMetadata: Record<string, CategoryInfo> = {
 
 export default function CategorySelectionScreen({ navigation }: Props) {
   const { user, loading: authLoading } = useAuthGuard();
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -115,10 +115,10 @@ export default function CategorySelectionScreen({ navigation }: Props) {
     }
   };
 
-  const handleCategorySelect = (category: string) => {
+  const handleCategorySelect = (category: Category) => {
     navigation.navigate("NewTest", { 
-      selectedCategory: category,
-      categoryName: categoryMetadata[category]?.name || category 
+      selectedCategory: category.id,
+      categoryName: category.name 
     });
   };
 
@@ -129,17 +129,17 @@ export default function CategorySelectionScreen({ navigation }: Props) {
     });
   };
 
-  const renderCategoryCard = (category: string, index: number) => {
-    const metadata = categoryMetadata[category] || {
-      name: category,
+  const renderCategoryCard = (category: Category, index: number) => {
+    const metadata = categoryMetadata[category.name] || {
+      name: category.name,
       icon: "help-outline",
       color: theme.colors.neutral[500],
-      description: "Spørsmål om " + category.toLowerCase(),
+      description: category.description || "Spørsmål om " + category.name.toLowerCase(),
     };
 
     return (
       <Animated.View
-        key={category}
+        key={category.id}
         entering={FadeInDown.delay(index * 100).springify()}
         style={styles.categoryCardWrapper}
       >

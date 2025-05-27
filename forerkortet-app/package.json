@@ -9,7 +9,8 @@
     "web": "expo start --web",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "migrate:questions": "tsx src/scripts/migrateQuestions.ts"
+    "migrate:questions": "tsx src/scripts/migrateQuestions.ts",
+    "import:signs": "tsx src/scripts/importSignsToFirebase.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -28,6 +29,8 @@
     "expo-haptics": "^14.1.4",
     "expo-linear-gradient": "^14.1.4",
     "expo-status-bar": "~2.2.3",
+    "expo-system-ui": "~5.0.7",
+    "firebase-admin": "^13.4.0",
     "lottie-react-native": "^7.2.2",
     "react": "19.0.0",
     "react-native": "0.79.2",

@@ -1,4 +1,4 @@
-package com.billappen
+package com.teklos.billappen
 
 import android.app.Application
 import android.content.res.Configuration

@@ -32,6 +32,7 @@ import firebaseQuestionService from "../services/firebaseQuestionService";
 import { premiumTheme } from "../constants/premiumTheme";
 import { PremiumButton } from "../components/PremiumButton";
 import { PremiumCard } from "../components/PremiumCard";
+import { processQuestionsWithReducedOptions } from "../utils/questionUtils";
 import { RouteProp } from "@react-navigation/native";
 
 type NewTestScreenNavigationProp = NativeStackNavigationProp<
@@ -121,7 +122,10 @@ export default function NewTestScreen({ navigation, route }: Props) {
         return;
       }
 
-      dispatch(startTest(selectedQuestions));
+      // Process questions to reduce options to 4
+      const processedQuestions = processQuestionsWithReducedOptions(selectedQuestions);
+      
+      dispatch(startTest(processedQuestions));
       navigation.navigate("Question");
     } catch (error) {
       console.error("Error starting quick test:", error);
@@ -157,8 +161,11 @@ export default function NewTestScreen({ navigation, route }: Props) {
 
       // Shuffle questions for the full test
       const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+      
+      // Process questions to reduce options to 4
+      const processedQuestions = processQuestionsWithReducedOptions(shuffled);
 
-      dispatch(startTest(shuffled));
+      dispatch(startTest(processedQuestions));
       navigation.navigate("Question");
     } catch (error) {
       console.error("Error starting full test:", error);
@@ -249,7 +256,7 @@ export default function NewTestScreen({ navigation, route }: Props) {
                   <View style={styles.testInfo}>
                     <View style={styles.infoItem}>
                       <Ionicons
-                        name="target-outline"
+                        name="flag-outline"
                         size={16}
                         color={premiumTheme.colors.text.secondary}
                       />

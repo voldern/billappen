@@ -7,10 +7,16 @@ class FirebaseQuestionService {
     try {
       const snapshot = await firestore().collection('questions').get();
       
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Question[];
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Convert Firestore timestamps to ISO strings
+          createdAt: data.createdAt?.toDate?.()?.toISOString?.() || null,
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString?.() || null,
+        };
+      }) as Question[];
     } catch (error) {
       console.error('Error fetching questions:', error);
       crashlytics().recordError(error as Error);
@@ -25,10 +31,16 @@ class FirebaseQuestionService {
         .where('category', '==', categoryId)
         .get();
       
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Question[];
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Convert Firestore timestamps to ISO strings
+          createdAt: data.createdAt?.toDate?.()?.toISOString?.() || null,
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString?.() || null,
+        };
+      }) as Question[];
     } catch (error) {
       console.error('Error fetching questions by category:', error);
       crashlytics().recordError(error as Error);
@@ -63,10 +75,16 @@ class FirebaseQuestionService {
         .orderBy('order', 'asc')
         .get();
       
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Category[];
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Convert any timestamps if they exist
+          createdAt: data.createdAt?.toDate?.()?.toISOString?.() || null,
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString?.() || null,
+        };
+      }) as Category[];
     } catch (error) {
       console.error('Error fetching categories:', error);
       crashlytics().recordError(error as Error);
@@ -162,11 +180,17 @@ class FirebaseQuestionService {
         .limit(50)
         .get();
       
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        userId,
-        ...doc.data(),
-      })) as TestResult[];
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          userId,
+          ...data,
+          // Convert Firestore timestamp to ISO string
+          completedAt: data.completedAt?.toDate?.()?.toISOString?.() || null,
+          date: data.completedAt?.toDate?.()?.toISOString?.() || null,
+        };
+      }) as TestResult[];
     } catch (error) {
       console.error('Error fetching user test results:', error);
       crashlytics().recordError(error as Error);
