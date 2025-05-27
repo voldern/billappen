@@ -29,6 +29,7 @@ import { RootStackParamList } from "../types";
 import { ProgressChart } from "../components/ProgressChart";
 import { AchievementBadge } from "../components/AchievementBadge";
 import { checkAchievements, UserStats } from "../utils/achievements";
+import { useAuthGuard } from "../hooks/useAuthGuard";
 
 const { width } = Dimensions.get("window");
 
@@ -133,6 +134,7 @@ const CategoryStat: React.FC<CategoryStatProps> = ({
 
 export default function ProgressScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const { user, loading: authLoading } = useAuthGuard();
   const results = useSelector((state: RootState) => state.results.results);
   const [stats, setStats] = useState({
     totalTests: 0,
@@ -158,8 +160,10 @@ export default function ProgressScreen() {
   }, [navigation]);
 
   useEffect(() => {
-    calculateStats();
-  }, [results]);
+    if (user) {
+      calculateStats();
+    }
+  }, [results, user]);
 
   const calculateStats = () => {
     if (!results || results.length === 0) return;

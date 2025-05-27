@@ -320,10 +320,19 @@ export class SupabaseQuestionService {
     }>;
   }): Promise<string | null> {
     try {
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        console.error('No authenticated user found:', userError);
+        return null;
+      }
+
       // Insert test result
       const { data: testResult, error: testError } = await supabase
         .from("test_results")
         .insert({
+          user_id: user.id,
           score: result.score,
           total_questions: result.totalQuestions,
           duration: result.duration,

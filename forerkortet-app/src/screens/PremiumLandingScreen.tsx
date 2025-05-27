@@ -7,6 +7,7 @@ import {
   Dimensions,
   StatusBar,
   Image,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -24,10 +25,12 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Alert } from "react-native";
 import { RootStackParamList } from "../types";
 import { premiumTheme } from "../constants/premiumTheme";
 import { PremiumButton } from "../components/PremiumButton";
 import { PremiumCard } from "../components/PremiumCard";
+import { useAuth } from "../contexts/AuthContext";
 
 const { width } = Dimensions.get("window");
 
@@ -43,6 +46,8 @@ interface Props {
 }
 
 export default function PremiumLandingScreen({ navigation }: Props) {
+  const { user, signOut } = useAuth();
+  
   // Animated values for background shapes
   const floatingShape1 = useSharedValue(0);
   const floatingShape2 = useSharedValue(0);
@@ -175,6 +180,26 @@ export default function PremiumLandingScreen({ navigation }: Props) {
     opacity: heroOpacity.value,
   }));
 
+  const handleLogout = async () => {
+    Alert.alert(
+      'Logg ut',
+      'Er du sikker på at du vil logge ut?',
+      [
+        {
+          text: 'Avbryt',
+          style: 'cancel',
+        },
+        {
+          text: 'Logg ut',
+          style: 'destructive',
+          onPress: async () => {
+            await signOut();
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -204,6 +229,31 @@ export default function PremiumLandingScreen({ navigation }: Props) {
         </Animated.View>
 
         <SafeAreaView style={styles.safeArea} edges={["top"]}>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              {user && (
+                <Text style={styles.welcomeText}>
+                  Hei, {user.email?.split('@')[0]}!
+                </Text>
+              )}
+            </View>
+            <View style={styles.headerRight}>
+              {user ? (
+                <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+                  <Ionicons name="log-out-outline" size={24} color={premiumTheme.colors.primary[600]} />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity 
+                  onPress={() => navigation.navigate('Login')} 
+                  style={styles.loginButton}
+                >
+                  <Text style={styles.loginButtonText}>Logg inn</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
@@ -256,7 +306,7 @@ export default function PremiumLandingScreen({ navigation }: Props) {
             <View style={styles.actionSection}>
               <PremiumButton
                 title="Ta test"
-                onPress={() => navigation.navigate("NewTest")}
+                onPress={() => navigation.navigate("CategorySelection")}
                 variant="white"
                 size="large"
                 fullWidth
@@ -347,6 +397,40 @@ const createStyles = () =>
     },
     safeArea: {
       flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: premiumTheme.spacing.lg,
+      paddingVertical: premiumTheme.spacing.md,
+    },
+    headerLeft: {
+      flex: 1,
+    },
+    headerRight: {
+      alignItems: 'flex-end',
+    },
+    welcomeText: {
+      fontSize: premiumTheme.typography.fontSize.base,
+      fontWeight: '600',
+      color: premiumTheme.colors.text.inverse,
+    },
+    loginButton: {
+      paddingHorizontal: premiumTheme.spacing.md,
+      paddingVertical: premiumTheme.spacing.sm,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      borderRadius: premiumTheme.borderRadius.lg,
+    },
+    loginButtonText: {
+      fontSize: premiumTheme.typography.fontSize.sm,
+      fontWeight: '600',
+      color: premiumTheme.colors.text.inverse,
+    },
+    logoutButton: {
+      padding: premiumTheme.spacing.sm,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      borderRadius: premiumTheme.borderRadius.full,
     },
     scrollContent: {
       paddingBottom: premiumTheme.spacing["3xl"],

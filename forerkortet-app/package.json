@@ -1,5 +1,5 @@
 {
-  "name": "forerkortet-app",
+  "name": "billappen",
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
@@ -14,6 +14,7 @@
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
     "@react-native-async-storage/async-storage": "^2.1.2",
+    "@react-native-google-signin/google-signin": "^14.0.1",
     "@react-navigation/native": "^7.1.9",
     "@react-navigation/native-stack": "^7.3.13",
     "@reduxjs/toolkit": "^2.8.2",

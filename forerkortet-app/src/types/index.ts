@@ -37,8 +37,12 @@ export interface TestState {
 
 export type RootStackParamList = {
   Landing: undefined;
+  Login: undefined;
+  Signup: undefined;
+  ForgotPassword: undefined;
   ResultsList: undefined;
-  NewTest: undefined;
+  CategorySelection: undefined;
+  NewTest: { selectedCategory?: string; categoryName?: string } | undefined;
   Question: undefined;
   TestResults: { testId: string };
   Progress: undefined;

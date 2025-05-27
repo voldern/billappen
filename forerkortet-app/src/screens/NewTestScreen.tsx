@@ -32,21 +32,29 @@ import supabaseQuestionService from "../services/supabaseQuestionService";
 import { premiumTheme } from "../constants/premiumTheme";
 import { PremiumButton } from "../components/PremiumButton";
 import { PremiumCard } from "../components/PremiumCard";
+import { RouteProp } from "@react-navigation/native";
 
 type NewTestScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   "NewTest"
 >;
 
+type NewTestScreenRouteProp = RouteProp<RootStackParamList, "NewTest">;
+
 interface Props {
   navigation: NewTestScreenNavigationProp;
+  route: NewTestScreenRouteProp;
 }
 
 const { width, height } = Dimensions.get("window");
 
-export default function NewTestScreen({ navigation }: Props) {
+export default function NewTestScreen({ navigation, route }: Props) {
   const dispatch = useDispatch<AppDispatch>();
   const [loading, setLoading] = React.useState(false);
+  
+  // Get category parameters from navigation
+  const selectedCategory = route.params?.selectedCategory;
+  const categoryName = route.params?.categoryName;
   
   // Animation values
   const headerOpacity = useSharedValue(0);
@@ -90,13 +98,25 @@ export default function NewTestScreen({ navigation }: Props) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
       setLoading(true);
-      const selectedQuestions =
-        await supabaseQuestionService.getRandomQuestions(10);
+      
+      let selectedQuestions;
+      if (selectedCategory) {
+        // Get questions from specific category
+        const categoryQuestions = await supabaseQuestionService.getQuestionsByCategory(selectedCategory);
+        // Take up to 10 random questions from the category
+        const shuffled = [...categoryQuestions].sort(() => Math.random() - 0.5);
+        selectedQuestions = shuffled.slice(0, Math.min(10, shuffled.length));
+      } else {
+        // Get random questions from all categories
+        selectedQuestions = await supabaseQuestionService.getRandomQuestions(10);
+      }
 
       if (selectedQuestions.length === 0) {
         Alert.alert(
           "Feil",
-          "Kunne ikke laste spørsmål. Sjekk internettforbindelsen."
+          selectedCategory 
+            ? `Ingen spørsmål funnet i kategorien "${categoryName}".`
+            : "Kunne ikke laste spørsmål. Sjekk internettforbindelsen."
         );
         return;
       }
@@ -115,12 +135,22 @@ export default function NewTestScreen({ navigation }: Props) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
       setLoading(true);
-      const allQuestions = await supabaseQuestionService.getAllQuestions();
+      
+      let allQuestions;
+      if (selectedCategory) {
+        // Get all questions from specific category
+        allQuestions = await supabaseQuestionService.getQuestionsByCategory(selectedCategory);
+      } else {
+        // Get all questions from all categories
+        allQuestions = await supabaseQuestionService.getAllQuestions();
+      }
 
       if (allQuestions.length === 0) {
         Alert.alert(
           "Feil",
-          "Kunne ikke laste spørsmål. Sjekk internettforbindelsen."
+          selectedCategory 
+            ? `Ingen spørsmål funnet i kategorien "${categoryName}".`
+            : "Kunne ikke laste spørsmål. Sjekk internettforbindelsen."
         );
         return;
       }
@@ -174,7 +204,9 @@ export default function NewTestScreen({ navigation }: Props) {
                 color={premiumTheme.colors.text.inverse}
               />
             </TouchableOpacity>
-            <Text style={styles.title}>Velg testtype</Text>
+            <Text style={styles.title}>
+              {selectedCategory ? categoryName : "Velg testtype"}
+            </Text>
             <View style={styles.headerPlaceholder} />
           </Animated.View>
 
@@ -183,6 +215,67 @@ export default function NewTestScreen({ navigation }: Props) {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
+            {/* Category Selection (when no category is selected) */}
+            {!selectedCategory && (
+              <Animated.View style={[styles.cardsContainer, cardAnimatedStyle]}>
+                <PremiumCard
+                  variant="elevated"
+                  padding="large"
+                  style={styles.testCard}
+                >
+                  <View style={styles.testHeader}>
+                    <View style={styles.testIcon}>
+                      <LinearGradient
+                        colors={[premiumTheme.colors.accent.main, premiumTheme.colors.accent.dark]}
+                        style={styles.iconGradient}
+                      >
+                        <Ionicons
+                          name="apps"
+                          size={24}
+                          color={premiumTheme.colors.text.inverse}
+                        />
+                      </LinearGradient>
+                    </View>
+                    <View style={styles.testTitleContainer}>
+                      <Text style={styles.testTitle}>Velg kategori</Text>
+                      <View style={[styles.testBadge, { backgroundColor: premiumTheme.colors.accent.light }]}>
+                        <Text style={styles.testBadgeText}>Målrettet øving</Text>
+                      </View>
+                    </View>
+                  </View>
+                  <Text style={styles.testDescription}>
+                    Øv deg på spørsmål fra en spesifikk kategori som fartsregler, vikeplikt, eller trafikklys.
+                  </Text>
+                  <View style={styles.testInfo}>
+                    <View style={styles.infoItem}>
+                      <Ionicons
+                        name="target-outline"
+                        size={16}
+                        color={premiumTheme.colors.text.secondary}
+                      />
+                      <Text style={styles.infoText}>Fokusert læring</Text>
+                    </View>
+                    <View style={styles.infoItem}>
+                      <Ionicons
+                        name="school-outline"
+                        size={16}
+                        color={premiumTheme.colors.text.secondary}
+                      />
+                      <Text style={styles.infoText}>Forbedr svake områder</Text>
+                    </View>
+                  </View>
+                  <PremiumButton
+                    title="Velg Kategori"
+                    onPress={() => navigation.navigate("CategorySelection")}
+                    variant="white"
+                    size="medium"
+                    fullWidth
+                    style={styles.cardButton}
+                  />
+                </PremiumCard>
+              </Animated.View>
+            )}
+
             {/* Test Options */}
             <Animated.View style={[styles.cardsContainer, cardAnimatedStyle]}>
               {/* Quick Test Card */}
@@ -212,7 +305,10 @@ export default function NewTestScreen({ navigation }: Props) {
                   </View>
                 </View>
                 <Text style={styles.testDescription}>
-                  Perfekt for en rask øvingsøkt. Test dine kunnskaper med 10 tilfeldig valgte spørsmål.
+                  {selectedCategory 
+                    ? `Perfekt for en rask øvingsøkt. Test dine kunnskaper med 10 tilfeldig valgte spørsmål fra ${categoryName?.toLowerCase()}.`
+                    : "Perfekt for en rask øvingsøkt. Test dine kunnskaper med 10 tilfeldig valgte spørsmål."
+                  }
                 </Text>
                 <View style={styles.testInfo}>
                   <View style={styles.infoItem}>
@@ -269,7 +365,10 @@ export default function NewTestScreen({ navigation }: Props) {
                   </View>
                 </View>
                 <Text style={styles.testDescription}>
-                  Omfattende test som dekker alle tilgjengelige spørsmål. Få en grundig vurdering av dine kunnskaper.
+                  {selectedCategory 
+                    ? `Omfattende test med alle spørsmål fra ${categoryName?.toLowerCase()}. Få en grundig vurdering av dine kunnskaper i denne kategorien.`
+                    : "Omfattende test som dekker alle tilgjengelige spørsmål. Få en grundig vurdering av dine kunnskaper."
+                  }
                 </Text>
                 <View style={styles.testInfo}>
                   <View style={styles.infoItem}>

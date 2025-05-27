@@ -1,0 +1,501 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  ActivityIndicator,
+  StatusBar,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  withDelay,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
+import { RootStackParamList } from '../types';
+import { premiumTheme as theme } from '../constants/premiumTheme';
+import { PremiumButton } from '../components/PremiumButton';
+import { PremiumCard } from '../components/PremiumCard';
+import { useAuth } from '../contexts/AuthContext';
+import { RouteProp } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
+import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
+
+type LoginScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Login'
+>;
+
+type LoginScreenRouteProp = RouteProp<RootStackParamList, 'Login'>;
+
+interface Props {
+  navigation: LoginScreenNavigationProp;
+  route: LoginScreenRouteProp;
+}
+
+export default function LoginScreen({ navigation, route }: Props) {
+  const { signIn, signInWithGoogle, loading: authLoading } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Animation values
+  const logoScale = useSharedValue(0.8);
+  const logoOpacity = useSharedValue(0);
+  const formOpacity = useSharedValue(0);
+  const formTranslateY = useSharedValue(50);
+
+  React.useEffect(() => {
+    // Entrance animations
+    logoScale.value = withSpring(1, { damping: 15, stiffness: 80 });
+    logoOpacity.value = withTiming(1, { duration: 600 });
+    
+    formOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
+    formTranslateY.value = withDelay(200, withSpring(0, { damping: 20, stiffness: 90 }));
+  }, []);
+
+  const logoAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: logoScale.value }],
+    opacity: logoOpacity.value,
+  }));
+
+  const formAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: formOpacity.value,
+    transform: [{ translateY: formTranslateY.value }],
+  }));
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Feil', 'Vennligst fyll ut alle feltene');
+      return;
+    }
+
+    if (!email.includes('@')) {
+      Alert.alert('Feil', 'Vennligst skriv inn en gyldig e-postadresse');
+      return;
+    }
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLoading(true);
+
+    try {
+      const { error } = await signIn(email.trim().toLowerCase(), password);
+      
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          Alert.alert('Feil', 'Ugyldig e-post eller passord');
+        } else if (error.message.includes('Email not confirmed')) {
+          Alert.alert(
+            'E-post ikke bekreftet',
+            'Vennligst sjekk e-posten din og klikk på bekreftelseslenken før du logger inn.'
+          );
+        } else {
+          Alert.alert('Feil', error.message || 'En feil oppstod under innlogging');
+        }
+      } else {
+        // Successful login
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        
+        // Navigate back to landing page after successful login
+        setTimeout(() => {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: 'Landing' }],
+            })
+          );
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Feil', 'En uventet feil oppstod. Prøv igjen senere.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = () => {
+    navigation.navigate('ForgotPassword');
+  };
+
+  const handleSignUp = () => {
+    navigation.navigate('Signup');
+  };
+
+  const handleGoogleSignIn = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setGoogleLoading(true);
+
+    try {
+      const { error } = await signInWithGoogle();
+      
+      if (error) {
+        if (error.message.includes('Google sign-in only available on Android')) {
+          // Error is already shown in an Alert by the auth context
+        } else if (error.message.includes('avbrutt')) {
+          // User cancelled, no need to show alert
+        } else {
+          Alert.alert('Feil', error.message || 'En feil oppstod med Google-innlogging');
+        }
+      } else {
+        // Successful login
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        
+        // Navigate back to landing page after successful login
+        setTimeout(() => {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: 'Landing' }],
+            })
+          );
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+      Alert.alert('Feil', 'En uventet feil oppstod. Prøv igjen senere.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <StatusBar barStyle="light-content" />
+      <LinearGradient
+        colors={theme.colors.background.gradient.primary}
+        style={styles.gradient}
+      >
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Header */}
+            <View style={styles.header}>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => navigation.goBack()}
+              >
+                <Ionicons
+                  name="arrow-back"
+                  size={24}
+                  color={theme.colors.text.inverse}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Logo Section */}
+            <Animated.View style={[styles.logoSection, logoAnimatedStyle]}>
+              <View style={styles.logoContainer}>
+                <LinearGradient
+                  colors={[theme.colors.background.elevated, theme.colors.background.primary]}
+                  style={styles.logoGradient}
+                >
+                  <Ionicons name="car-sport" size={48} color={theme.colors.primary[600]} />
+                </LinearGradient>
+              </View>
+              <Text style={styles.welcomeTitle}>Velkommen tilbake</Text>
+              <Text style={styles.welcomeSubtitle}>Logg inn for å fortsette din læring</Text>
+            </Animated.View>
+
+            {/* Login Form */}
+            <Animated.View style={[styles.formSection, formAnimatedStyle]}>
+              <PremiumCard variant="elevated" padding="large" style={styles.formCard}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>E-postadresse</Text>
+                  <View style={styles.inputWrapper}>
+                    <Ionicons
+                      name="mail-outline"
+                      size={20}
+                      color={theme.colors.text.secondary}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.textInput}
+                      value={email}
+                      onChangeText={setEmail}
+                      placeholder="din@epost.no"
+                      placeholderTextColor={theme.colors.text.secondary}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading && !authLoading}
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Passord</Text>
+                  <View style={styles.inputWrapper}>
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={20}
+                      color={theme.colors.text.secondary}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={[styles.textInput, styles.passwordInput]}
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="Skriv inn passordet ditt"
+                      placeholderTextColor={theme.colors.text.secondary}
+                      secureTextEntry={!showPassword}
+                      autoCorrect={false}
+                      editable={!loading && !authLoading}
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowPassword(!showPassword)}
+                      style={styles.eyeButton}
+                    >
+                      <Ionicons
+                        name={showPassword ? "eye-off-outline" : "eye-outline"}
+                        size={20}
+                        color={theme.colors.text.secondary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  onPress={handleForgotPassword}
+                  style={styles.forgotPasswordButton}
+                >
+                  <Text style={styles.forgotPasswordText}>Glemt passord?</Text>
+                </TouchableOpacity>
+
+                <PremiumButton
+                  title={loading || authLoading ? undefined : "Logg inn"}
+                  onPress={handleLogin}
+                  variant="primary"
+                  size="large"
+                  fullWidth
+                  disabled={loading || authLoading}
+                  style={styles.loginButton}
+                  icon={
+                    loading || authLoading ? (
+                      <ActivityIndicator size="small" color={theme.colors.text.inverse} />
+                    ) : (
+                      <Ionicons name="log-in-outline" size={20} color={theme.colors.text.inverse} />
+                    )
+                  }
+                />
+
+                {/* Divider for Google Sign In - Android only */}
+                {Platform.OS === 'android' && (
+                  <>
+                    <View style={styles.dividerContainer}>
+                      <View style={styles.divider} />
+                      <Text style={styles.dividerText}>eller</Text>
+                      <View style={styles.divider} />
+                    </View>
+
+                    {/* Google Sign In Button */}
+                    <View style={styles.googleButtonContainer}>
+                      {googleLoading ? (
+                        <View style={styles.googleLoadingContainer}>
+                          <ActivityIndicator size="large" color={theme.colors.primary[600]} />
+                        </View>
+                      ) : (
+                        <GoogleSigninButton
+                          size={GoogleSigninButton.Size.Wide}
+                          color={GoogleSigninButton.Color.Light}
+                          onPress={handleGoogleSignIn}
+                          disabled={loading || authLoading || googleLoading}
+                          style={styles.googleButton}
+                        />
+                      )}
+                    </View>
+                  </>
+                )}
+              </PremiumCard>
+
+              {/* Sign Up Link */}
+              <View style={styles.signUpSection}>
+                <Text style={styles.signUpText}>Har du ikke en konto?</Text>
+                <TouchableOpacity onPress={handleSignUp} style={styles.signUpButton}>
+                  <Text style={styles.signUpButtonText}>Opprett konto</Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+          </ScrollView>
+        </SafeAreaView>
+      </LinearGradient>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  gradient: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
+  },
+  header: {
+    paddingVertical: theme.spacing.md,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoSection: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing['2xl'],
+  },
+  logoContainer: {
+    marginBottom: theme.spacing.lg,
+    ...theme.shadows.xl,
+  },
+  logoGradient: {
+    width: 96,
+    height: 96,
+    borderRadius: theme.borderRadius['2xl'],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  welcomeTitle: {
+    fontSize: theme.typography.fontSize['3xl'],
+    fontWeight: '700',
+    color: theme.colors.text.inverse,
+    marginBottom: theme.spacing.xs,
+    textAlign: 'center',
+  },
+  welcomeSubtitle: {
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.text.inverse,
+    opacity: 0.9,
+    textAlign: 'center',
+  },
+  formSection: {
+    flex: 1,
+  },
+  formCard: {
+    marginBottom: theme.spacing.xl,
+  },
+  inputContainer: {
+    marginBottom: theme.spacing.lg,
+  },
+  inputLabel: {
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background.elevated,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.neutral[200],
+    paddingHorizontal: theme.spacing.md,
+  },
+  inputIcon: {
+    marginRight: theme.spacing.sm,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.text.primary,
+    paddingVertical: theme.spacing.md,
+  },
+  passwordInput: {
+    paddingRight: theme.spacing.sm,
+  },
+  eyeButton: {
+    padding: theme.spacing.xs,
+  },
+  forgotPasswordButton: {
+    alignSelf: 'flex-end',
+    marginBottom: theme.spacing.lg,
+  },
+  forgotPasswordText: {
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.primary[600],
+    fontWeight: '600',
+  },
+  loginButton: {
+    marginTop: theme.spacing.sm,
+  },
+  signUpSection: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: theme.spacing.lg,
+  },
+  signUpText: {
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.text.inverse,
+    opacity: 0.9,
+  },
+  signUpButton: {
+    marginLeft: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+  },
+  signUpButtonText: {
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.text.inverse,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: theme.spacing.lg,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: theme.colors.neutral[300],
+  },
+  dividerText: {
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.text.secondary,
+    marginHorizontal: theme.spacing.md,
+    fontWeight: '600',
+  },
+  googleButtonContainer: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  googleButton: {
+    width: '100%',
+  },
+  googleLoadingContainer: {
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
