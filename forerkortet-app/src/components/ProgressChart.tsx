@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { premiumTheme as theme } from "../constants/premiumTheme";
+import { theme } from "../constants/theme";
 import { TestResult } from "../types";
 
 const { width } = Dimensions.get("window");

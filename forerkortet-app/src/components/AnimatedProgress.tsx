@@ -9,7 +9,7 @@ import Animated, {
   Extrapolate,
   runOnJS,
 } from "react-native-reanimated";
-import { premiumTheme } from "../constants/premiumTheme";
+import { theme } from "../constants/theme";
 import * as Haptics from "expo-haptics";
 
 interface AnimatedProgressProps {
@@ -133,29 +133,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: premiumTheme.spacing.sm,
+    marginBottom: theme.spacing.sm,
   },
   stepText: {
-    fontSize: premiumTheme.typography.fontSize.sm,
-    color: premiumTheme.colors.text.secondary,
-    fontWeight: premiumTheme.typography.fontWeight.medium,
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.text.secondary,
+    fontWeight: theme.typography.fontWeight.medium,
   },
   percentageText: {
-    fontSize: premiumTheme.typography.fontSize.sm,
-    color: premiumTheme.colors.primary[600],
-    fontWeight: premiumTheme.typography.fontWeight.semibold,
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.primary[600],
+    fontWeight: theme.typography.fontWeight.semibold,
   },
   progressBar: {
     width: "100%",
-    backgroundColor: premiumTheme.colors.neutral[100],
-    borderRadius: premiumTheme.borderRadius.full,
+    backgroundColor: theme.colors.neutral[100],
+    borderRadius: theme.borderRadius.full,
     overflow: "hidden",
     position: "relative",
   },
   progressFill: {
     height: "100%",
-    backgroundColor: premiumTheme.colors.primary[500],
-    borderRadius: premiumTheme.borderRadius.full,
+    backgroundColor: theme.colors.primary[500],
+    borderRadius: theme.borderRadius.full,
     position: "relative",
     overflow: "hidden",
   },
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     right: 0,
     width: 40,
     height: "100%",
-    backgroundColor: premiumTheme.colors.primary[300],
+    backgroundColor: theme.colors.primary[300],
     opacity: 0.6,
     transform: [{ skewX: "-20deg" }],
   },
@@ -181,24 +181,24 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: premiumTheme.colors.neutral[200],
+    backgroundColor: theme.colors.neutral[200],
     top: "50%",
     marginTop: -6,
     marginLeft: -6,
     borderWidth: 2,
-    borderColor: premiumTheme.colors.background.primary,
+    borderColor: theme.colors.background.primary,
   },
   dotActive: {
-    backgroundColor: premiumTheme.colors.primary[400],
+    backgroundColor: theme.colors.primary[400],
   },
   dotCurrent: {
-    backgroundColor: premiumTheme.colors.primary[600],
+    backgroundColor: theme.colors.primary[600],
     width: 16,
     height: 16,
     borderRadius: 8,
     marginTop: -8,
     marginLeft: -8,
     borderWidth: 3,
-    ...premiumTheme.shadows.sm,
+    ...theme.shadows.sm,
   },
 });

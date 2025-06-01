@@ -1,26 +1,21 @@
 import React, { useEffect, useState, useLayoutEffect } from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Dimensions,
-  Platform,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
-import { premiumTheme as theme } from "../constants/premiumTheme";
-import { PremiumCard } from "../components/PremiumCard";
+import { theme } from "../constants/theme";
+import { Card } from "../components/Card";
 import Animated, {
   FadeInDown,
   FadeInUp,
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withSpring,
 } from "react-native-reanimated";
 import { TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -30,8 +25,6 @@ import { ProgressChart } from "../components/ProgressChart";
 import { AchievementBadge } from "../components/AchievementBadge";
 import { checkAchievements, UserStats } from "../utils/achievements";
 import { useAuthGuard } from "../hooks/useAuthGuard";
-
-const { width } = Dimensions.get("window");
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Progress">;
 
@@ -44,13 +37,14 @@ interface StatCardProps {
   delay?: number;
 }
 
-const StatCard: React.FC<StatCardProps> = ({
+const StatCard: React.FC<StatCardProps & { styles: any }> = ({
   icon,
   title,
   value,
   subtitle,
   color,
   delay = 0,
+  styles,
 }) => {
   const isOdd = delay === 300 || delay === 500; // Third and fourth cards
   return (
@@ -60,7 +54,12 @@ const StatCard: React.FC<StatCardProps> = ({
         style={styles.statCard}
       >
         <View style={styles.statCardContent}>
-          <View style={[styles.statIconContainer, { backgroundColor: color + "20" }]}>
+          <View
+            style={[
+              styles.statIconContainer,
+              { backgroundColor: color + "20" },
+            ]}
+          >
             <Ionicons name={icon as any} size={24} color={color} />
           </View>
           <Text style={styles.statTitle}>{title}</Text>
@@ -84,12 +83,13 @@ interface CategoryStatProps {
   delay?: number;
 }
 
-const CategoryStat: React.FC<CategoryStatProps> = ({
+const CategoryStat: React.FC<CategoryStatProps & { styles: any }> = ({
   category,
   correct,
   total,
   percentage,
   delay = 0,
+  styles,
 }) => {
   const progressWidth = useSharedValue(0);
 
@@ -136,6 +136,7 @@ export default function ProgressScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { user, loading: authLoading } = useAuthGuard();
   const results = useSelector((state: RootState) => state.results.results);
+  const insets = useSafeAreaInsets();
   const [stats, setStats] = useState({
     totalTests: 0,
     totalQuestions: 0,
@@ -146,11 +147,13 @@ export default function ProgressScreen() {
     categoryBreakdown: {} as Record<string, { correct: number; total: number }>,
   });
 
+  const styles = createStyles(insets);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity
-          onPress={() => navigation.navigate('ResultsList')}
+          onPress={() => navigation.push("ResultsList")}
           style={{ marginRight: theme.spacing.md }}
         >
           <Ionicons name="list" size={24} color={theme.colors.primary[600]} />
@@ -172,31 +175,37 @@ export default function ProgressScreen() {
     let correctAnswers = 0;
     let totalTime = 0;
     let bestScore = 0;
-    const categoryBreakdown: Record<string, { correct: number; total: number }> = {};
+    const categoryBreakdown: Record<
+      string,
+      { correct: number; total: number }
+    > = {};
 
     results.forEach((result) => {
       totalQuestions += result.totalQuestions;
       correctAnswers += result.score;
-      totalTime += result.duration;
-      
+      totalTime += result.duration || 0;
+
       const scorePercentage = (result.score / result.totalQuestions) * 100;
       if (scorePercentage > bestScore) {
         bestScore = scorePercentage;
       }
 
       // Process category breakdown
-      Object.entries(result.categoryBreakdown || {}).forEach(([category, data]) => {
-        if (!categoryBreakdown[category]) {
-          categoryBreakdown[category] = { correct: 0, total: 0 };
+      Object.entries(result.categoryBreakdown || {}).forEach(
+        ([category, data]) => {
+          if (!categoryBreakdown[category]) {
+            categoryBreakdown[category] = { correct: 0, total: 0 };
+          }
+          categoryBreakdown[category].correct += data.correct;
+          categoryBreakdown[category].total += data.total;
         }
-        categoryBreakdown[category].correct += data.correct;
-        categoryBreakdown[category].total += data.total;
-      });
+      );
     });
 
-    const averageScore = totalQuestions > 0 
-      ? Math.round((correctAnswers / totalQuestions) * 100)
-      : 0;
+    const averageScore =
+      totalQuestions > 0
+        ? Math.round((correctAnswers / totalQuestions) * 100)
+        : 0;
 
     setStats({
       totalTests: results.length,
@@ -212,11 +221,11 @@ export default function ProgressScreen() {
   const formatTime = (milliseconds: number): string => {
     // Convert milliseconds to seconds
     const totalSeconds = Math.floor(milliseconds / 1000);
-    
+
     const days = Math.floor(totalSeconds / 86400);
     const hours = Math.floor((totalSeconds % 86400) / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
-    
+
     if (days > 0) {
       return `${days}d ${hours}t`;
     } else if (hours > 0) {
@@ -264,7 +273,7 @@ export default function ProgressScreen() {
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Din Fremgang</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate("ResultsList")}
+              onPress={() => navigation.push("ResultsList")}
               style={styles.historyButton}
             >
               <Ionicons
@@ -306,6 +315,7 @@ export default function ProgressScreen() {
               value={`${stats.bestScore}%`}
               color={theme.colors.semantic.success.main}
               delay={200}
+              styles={styles}
             />
             <StatCard
               icon="document-text"
@@ -313,6 +323,7 @@ export default function ProgressScreen() {
               value={stats.totalTests}
               color={theme.colors.primary[600]}
               delay={300}
+              styles={styles}
             />
             <StatCard
               icon="help-circle"
@@ -321,6 +332,7 @@ export default function ProgressScreen() {
               subtitle={`${stats.correctAnswers} riktige`}
               color={theme.colors.purple[600]}
               delay={400}
+              styles={styles}
             />
             <StatCard
               icon="time"
@@ -328,19 +340,20 @@ export default function ProgressScreen() {
               value={formatTime(stats.totalTime)}
               color={theme.colors.accent.main}
               delay={500}
+              styles={styles}
             />
           </View>
 
           {/* Progress Chart */}
           {results.length > 1 && (
-            <PremiumCard variant="elevated" style={styles.chartCard}>
+            <Card variant="elevated" style={styles.chartCard}>
               <ProgressChart results={results} />
-            </PremiumCard>
+            </Card>
           )}
 
           {/* Category Breakdown */}
           {Object.keys(stats.categoryBreakdown).length > 0 && (
-            <PremiumCard variant="elevated" style={styles.categoryCard}>
+            <Card variant="elevated" style={styles.categoryCard}>
               <Text style={styles.sectionTitle}>Fremgang per Kategori</Text>
               <View style={styles.categoryList}>
                 {Object.entries(stats.categoryBreakdown).map(
@@ -356,12 +369,13 @@ export default function ProgressScreen() {
                         total={data.total}
                         percentage={percentage}
                         delay={600 + index * 100}
+                        styles={styles}
                       />
                     );
                   }
                 )}
               </View>
-            </PremiumCard>
+            </Card>
           )}
 
           {/* Achievements Section */}
@@ -374,7 +388,9 @@ export default function ProgressScreen() {
             >
               {checkAchievements({
                 totalTests: stats.totalTests,
-                perfectTests: results.filter(r => r.score === r.totalQuestions).length,
+                perfectTests: results.filter(
+                  (r) => r.score === r.totalQuestions
+                ).length,
                 totalQuestions: stats.totalQuestions,
                 correctAnswers: stats.correctAnswers,
                 averageScore: stats.averageScore,
@@ -384,13 +400,17 @@ export default function ProgressScreen() {
                   <AchievementBadge
                     achievement={{
                       ...achievement,
-                      progress: achievement.id === 'hundred_questions' && !achievement.unlocked
-                        ? { current: stats.totalQuestions, target: 100 }
-                        : achievement.id === 'five_tests' && !achievement.unlocked
-                        ? { current: stats.totalTests, target: 5 }
-                        : achievement.id === 'ten_tests' && !achievement.unlocked
-                        ? { current: stats.totalTests, target: 10 }
-                        : undefined,
+                      progress:
+                        achievement.id === "hundred_questions" &&
+                        !achievement.unlocked
+                          ? { current: stats.totalQuestions, target: 100 }
+                          : achievement.id === "five_tests" &&
+                            !achievement.unlocked
+                          ? { current: stats.totalTests, target: 5 }
+                          : achievement.id === "ten_tests" &&
+                            !achievement.unlocked
+                          ? { current: stats.totalTests, target: 10 }
+                          : undefined,
                     }}
                     delay={index * 100}
                   />
@@ -424,226 +444,227 @@ export default function ProgressScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background.primary,
-  },
-  gradient: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: theme.spacing["3xl"],
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.background.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    ...theme.shadows.sm,
-  },
-  headerTitle: {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: "700",
-    color: theme.colors.text.primary,
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  historyButton: {
-    width: 40,
-    height: 40,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.background.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    ...theme.shadows.sm,
-  },
-  heroSection: {
-    marginHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
-    borderRadius: theme.borderRadius.xl,
-    overflow: "hidden",
-    ...theme.shadows.lg,
-  },
-  heroGradient: {
-    padding: theme.spacing.xl,
-  },
-  heroContent: {
-    alignItems: "center",
-  },
-  scoreCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: theme.colors.background.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: theme.spacing.lg,
-    ...theme.shadows.md,
-  },
-  scoreValue: {
-    fontSize: 36,
-    fontWeight: "700",
-    color: theme.colors.primary[700],
-  },
-  scoreLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondary,
-    fontWeight: "600",
-  },
-  motivationalText: {
-    fontSize: theme.typography.fontSize.lg,
-    color: theme.colors.text.inverse,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
-  },
-  statCardWrapper: {
-    width: "50%",
-    paddingRight: theme.spacing.sm,
-    marginBottom: theme.spacing.md,
-  },
-  statCardWrapperOdd: {
-    paddingRight: 0,
-    paddingLeft: theme.spacing.sm,
-  },
-  statCard: {
-    backgroundColor: theme.colors.background.primary,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.lg,
-    minHeight: 180,
-    ...theme.shadows.md,
-  },
-  statCardContent: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  statIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: theme.borderRadius.full,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: theme.spacing.sm,
-  },
-  statTitle: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondary,
-    fontWeight: "500",
-    marginBottom: theme.spacing.xs,
-    textAlign: "center",
-    paddingHorizontal: theme.spacing.xs,
-  },
-  statValue: {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: "700",
-    color: theme.colors.text.primary,
-    textAlign: "center",
-  },
-  statSubtitle: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondary,
-    marginTop: theme.spacing.xs,
-    textAlign: "center",
-  },
-  statSubtitlePlaceholder: {
-    height: theme.typography.fontSize.xs + theme.spacing.xs,
-  },
-  chartCard: {
-    marginHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
-  },
-  categoryCard: {
-    marginHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: "700",
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.lg,
-  },
-  categoryList: {
-    gap: theme.spacing.md,
-  },
-  categoryStatContainer: {
-    marginBottom: theme.spacing.md,
-  },
-  categoryHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: theme.spacing.sm,
-  },
-  categoryName: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: "600",
-    color: theme.colors.text.primary,
-  },
-  categoryScore: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondary,
-    fontWeight: "500",
-  },
-  categoryProgressBar: {
-    height: 8,
-    backgroundColor: theme.colors.neutral[100],
-    borderRadius: theme.borderRadius.full,
-    overflow: "hidden",
-  },
-  categoryProgressFill: {
-    height: "100%",
-    borderRadius: theme.borderRadius.full,
-  },
-  emptyState: {
-    alignItems: "center",
-    paddingVertical: theme.spacing["3xl"],
-    paddingHorizontal: theme.spacing.xl,
-  },
-  emptyIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.neutral[50],
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: theme.spacing.lg,
-  },
-  emptyTitle: {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: "700",
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.sm,
-  },
-  emptyText: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.secondary,
-    textAlign: "center",
-  },
-  achievementsSection: {
-    marginBottom: theme.spacing.xl,
-  },
-  achievementsScroll: {
-    paddingHorizontal: theme.spacing.lg,
-  },
-  achievementWrapper: {
-    width: 160,
-    marginRight: theme.spacing.md,
-  },
-});
+const createStyles = (insets: ReturnType<typeof useSafeAreaInsets>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background.primary,
+    },
+    gradient: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingBottom: Math.max(theme.spacing["3xl"], insets.bottom),
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.md,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: theme.borderRadius.full,
+      backgroundColor: theme.colors.background.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      ...theme.shadows.sm,
+    },
+    headerTitle: {
+      fontSize: theme.typography.fontSize.xl,
+      fontWeight: "700",
+      color: theme.colors.text.primary,
+    },
+    headerSpacer: {
+      width: 40,
+    },
+    historyButton: {
+      width: 40,
+      height: 40,
+      borderRadius: theme.borderRadius.full,
+      backgroundColor: theme.colors.background.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      ...theme.shadows.sm,
+    },
+    heroSection: {
+      marginHorizontal: theme.spacing.lg,
+      marginBottom: theme.spacing.xl,
+      borderRadius: theme.borderRadius.xl,
+      overflow: "hidden",
+      ...theme.shadows.lg,
+    },
+    heroGradient: {
+      padding: theme.spacing.xl,
+    },
+    heroContent: {
+      alignItems: "center",
+    },
+    scoreCircle: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: theme.colors.background.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: theme.spacing.lg,
+      ...theme.shadows.md,
+    },
+    scoreValue: {
+      fontSize: 36,
+      fontWeight: "700",
+      color: theme.colors.primary[700],
+    },
+    scoreLabel: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.text.secondary,
+      fontWeight: "600",
+    },
+    motivationalText: {
+      fontSize: theme.typography.fontSize.lg,
+      color: theme.colors.text.inverse,
+      fontWeight: "600",
+      textAlign: "center",
+    },
+    statsGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      paddingHorizontal: theme.spacing.lg,
+      marginBottom: theme.spacing.xl,
+    },
+    statCardWrapper: {
+      width: "50%",
+      paddingRight: theme.spacing.sm,
+      marginBottom: theme.spacing.md,
+    },
+    statCardWrapperOdd: {
+      paddingRight: 0,
+      paddingLeft: theme.spacing.sm,
+    },
+    statCard: {
+      backgroundColor: theme.colors.background.primary,
+      borderRadius: theme.borderRadius.lg,
+      padding: theme.spacing.lg,
+      minHeight: 180,
+      ...theme.shadows.md,
+    },
+    statCardContent: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    statIconContainer: {
+      width: 48,
+      height: 48,
+      borderRadius: theme.borderRadius.full,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: theme.spacing.sm,
+    },
+    statTitle: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.text.secondary,
+      fontWeight: "500",
+      marginBottom: theme.spacing.xs,
+      textAlign: "center",
+      paddingHorizontal: theme.spacing.xs,
+    },
+    statValue: {
+      fontSize: theme.typography.fontSize.xl,
+      fontWeight: "700",
+      color: theme.colors.text.primary,
+      textAlign: "center",
+    },
+    statSubtitle: {
+      fontSize: theme.typography.fontSize.xs,
+      color: theme.colors.text.secondary,
+      marginTop: theme.spacing.xs,
+      textAlign: "center",
+    },
+    statSubtitlePlaceholder: {
+      height: theme.typography.fontSize.xs + theme.spacing.xs,
+    },
+    chartCard: {
+      marginHorizontal: theme.spacing.lg,
+      marginBottom: theme.spacing.xl,
+    },
+    categoryCard: {
+      marginHorizontal: theme.spacing.lg,
+      marginBottom: theme.spacing.xl,
+    },
+    sectionTitle: {
+      fontSize: theme.typography.fontSize.xl,
+      fontWeight: "700",
+      color: theme.colors.text.primary,
+      marginBottom: theme.spacing.lg,
+      paddingHorizontal: theme.spacing.lg,
+    },
+    categoryList: {
+      gap: theme.spacing.md,
+    },
+    categoryStatContainer: {
+      marginBottom: theme.spacing.md,
+    },
+    categoryHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: theme.spacing.sm,
+    },
+    categoryName: {
+      fontSize: theme.typography.fontSize.base,
+      fontWeight: "600",
+      color: theme.colors.text.primary,
+    },
+    categoryScore: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.text.secondary,
+      fontWeight: "500",
+    },
+    categoryProgressBar: {
+      height: 8,
+      backgroundColor: theme.colors.neutral[100],
+      borderRadius: theme.borderRadius.full,
+      overflow: "hidden",
+    },
+    categoryProgressFill: {
+      height: "100%",
+      borderRadius: theme.borderRadius.full,
+    },
+    emptyState: {
+      alignItems: "center",
+      paddingVertical: theme.spacing["3xl"],
+      paddingHorizontal: theme.spacing.xl,
+    },
+    emptyIconContainer: {
+      width: 120,
+      height: 120,
+      borderRadius: theme.borderRadius.full,
+      backgroundColor: theme.colors.neutral[50],
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: theme.spacing.lg,
+    },
+    emptyTitle: {
+      fontSize: theme.typography.fontSize.xl,
+      fontWeight: "700",
+      color: theme.colors.text.primary,
+      marginBottom: theme.spacing.sm,
+    },
+    emptyText: {
+      fontSize: theme.typography.fontSize.base,
+      color: theme.colors.text.secondary,
+      textAlign: "center",
+    },
+    achievementsSection: {
+      marginBottom: theme.spacing.xl,
+    },
+    achievementsScroll: {
+      paddingHorizontal: theme.spacing.lg,
+    },
+    achievementWrapper: {
+      width: 160,
+      marginRight: theme.spacing.md,
+    },
+  });

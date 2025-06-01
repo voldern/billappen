@@ -8,13 +8,14 @@ import Animated, {
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
-import { premiumTheme as theme } from '../constants/theme';
+import { theme } from '../constants/theme';
 
 interface AnimatedCardProps {
   children: React.ReactNode;
   delay?: number;
   style?: ViewStyle;
   index?: number;
+  testID?: string;
 }
 
 export const AnimatedCard: React.FC<AnimatedCardProps> = ({
@@ -22,6 +23,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
   delay = 0,
   style,
   index = 0,
+  testID,
 }) => {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(30);
@@ -53,7 +55,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
   }));
 
   return (
-    <Animated.View style={[styles.container, animatedStyle, style]}>
+    <Animated.View style={[styles.container, animatedStyle, style]} testID={testID}>
       {children}
     </Animated.View>
   );

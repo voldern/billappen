@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,29 +11,26 @@ import {
   ScrollView,
   ActivityIndicator,
   StatusBar,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withDelay,
-} from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
-import { RootStackParamList } from '../types';
-import { premiumTheme as theme } from '../constants/premiumTheme';
-import { PremiumButton } from '../components/PremiumButton';
-import { PremiumCard } from '../components/PremiumCard';
-import { useAuth } from '../contexts/AuthContext';
-import { CommonActions } from '@react-navigation/native';
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as Haptics from "expo-haptics";
+import { RootStackParamList } from "../types";
+import { theme } from "../constants/theme";
+import { Button } from "../components/Button";
+import { Card } from "../components/Card";
+import { useAuth } from "../contexts/AuthContext";
+import { CommonActions } from "@react-navigation/native";
+import analytics from "@react-native-firebase/analytics";
 
 type SignupScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
-  'Signup'
+  "Signup"
 >;
 
 interface Props {
@@ -42,70 +39,32 @@ interface Props {
 
 export default function SignupScreen({ navigation }: Props) {
   const { signUp, loading: authLoading } = useAuth();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const insets = useSafeAreaInsets();
 
-  // Animation values
-  const logoScale = useSharedValue(0.8);
-  const logoOpacity = useSharedValue(0);
-  const formOpacity = useSharedValue(0);
-  const formTranslateY = useSharedValue(50);
-
-  React.useEffect(() => {
-    // Entrance animations
-    logoScale.value = withSpring(1, { damping: 15, stiffness: 80 });
-    logoOpacity.value = withTiming(1, { duration: 600 });
-    
-    formOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
-    formTranslateY.value = withDelay(200, withSpring(0, { damping: 20, stiffness: 90 }));
-  }, []);
-
-  const logoAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: logoScale.value }],
-    opacity: logoOpacity.value,
-  }));
-
-  const formAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: formOpacity.value,
-    transform: [{ translateY: formTranslateY.value }],
-  }));
-
-  const validateForm = () => {
-    if (!name || !email || !password || !confirmPassword) {
-      Alert.alert('Feil', 'Vennligst fyll ut alle feltene');
-      return false;
+  const handleSignup = async () => {
+    if (!email || !password || !confirmPassword) {
+      Alert.alert("Feil", "Vennligst fyll ut alle feltene");
+      return;
     }
 
-    if (name.trim().length < 2) {
-      Alert.alert('Feil', 'Navnet må være minst 2 tegn langt');
-      return false;
-    }
-
-    if (!email.includes('@')) {
-      Alert.alert('Feil', 'Vennligst skriv inn en gyldig e-postadresse');
-      return false;
+    if (!email.includes("@")) {
+      Alert.alert("Feil", "Vennligst skriv inn en gyldig e-postadresse");
+      return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Feil', 'Passordet må være minst 6 tegn langt');
-      return false;
+      Alert.alert("Feil", "Passordet må være minst 6 tegn");
+      return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Feil', 'Passordene stemmer ikke overens');
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSignUp = async () => {
-    if (!validateForm()) {
+      Alert.alert("Feil", "Passordene samsvarer ikke");
       return;
     }
 
@@ -113,93 +72,81 @@ export default function SignupScreen({ navigation }: Props) {
     setLoading(true);
 
     try {
-      const { error } = await signUp(email.trim().toLowerCase(), password, name.trim());
-      
+      const { error } = await signUp(email.trim().toLowerCase(), password);
+
       if (error) {
-        if (error.message.includes('User already registered')) {
+        if (error.message.includes("User already registered")) {
           Alert.alert(
-            'Bruker eksisterer allerede',
-            'En bruker med denne e-postadressen eksisterer allerede. Prøv å logge inn i stedet.'
+            "Konto eksisterer",
+            "Det finnes allerede en konto med denne e-postadressen"
           );
-        } else if (error.message.includes('Password should be at least')) {
-          Alert.alert('Feil', 'Passordet må være minst 6 tegn langt');
         } else {
-          Alert.alert('Feil', error.message || 'En feil oppstod under registrering');
+          Alert.alert(
+            "Feil",
+            error.message || "En feil oppstod under registrering"
+          );
         }
       } else {
+        // Successful signup
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        // User will be automatically logged in and redirected by AuthContext
+
+        await analytics().logSignUp({
+          method: "email",
+        });
+
+        Alert.alert(
+          "Suksess!",
+          "Vennligst sjekk e-posten din for å bekrefte kontoen din før du logger inn.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                navigation.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: "Landing" }],
+                  })
+                );
+              },
+            },
+          ]
+        );
       }
     } catch (error) {
-      console.error('Signup error:', error);
-      Alert.alert('Feil', 'En uventet feil oppstod. Prøv igjen senere.');
+      console.error("Signup error:", error);
+      Alert.alert("Feil", "En uventet feil oppstod. Prøv igjen senere.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleLogin = () => {
-    navigation.navigate('Login');
+    navigation.navigate("Login");
   };
 
-
-  const getPasswordStrength = (password: string) => {
-    let strength = 0;
-    if (password.length >= 6) strength++;
-    if (password.length >= 8) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    if (/[^A-Za-z0-9]/.test(password)) strength++;
-    return strength;
+  const handleGoBack = () => {
+    navigation.goBack();
   };
 
-  const getPasswordStrengthText = (strength: number) => {
-    switch (strength) {
-      case 0:
-      case 1:
-        return 'Svakt';
-      case 2:
-        return 'Greit';
-      case 3:
-        return 'Bra';
-      case 4:
-      case 5:
-        return 'Sterkt';
-      default:
-        return 'Svakt';
-    }
-  };
-
-  const getPasswordStrengthColor = (strength: number) => {
-    switch (strength) {
-      case 0:
-      case 1:
-        return theme.colors.semantic.error.main;
-      case 2:
-        return theme.colors.semantic.warning.main;
-      case 3:
-        return theme.colors.accent.main;
-      case 4:
-      case 5:
-        return theme.colors.semantic.success.main;
-      default:
-        return theme.colors.semantic.error.main;
-    }
-  };
-
-  const passwordStrength = getPasswordStrength(password);
+  const styles = createStyles(insets);
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <StatusBar barStyle="light-content" />
       <LinearGradient
-        colors={theme.colors.background.gradient.primary}
+        colors={
+          [...theme.colors.background.gradient.primary] as [
+            string,
+            string,
+            ...string[]
+          ]
+        }
         style={styles.gradient}
       >
-        <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <SafeAreaView style={styles.safeArea} edges={["top"]}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
@@ -209,7 +156,7 @@ export default function SignupScreen({ navigation }: Props) {
             <View style={styles.header}>
               <TouchableOpacity
                 style={styles.backButton}
-                onPress={() => navigation.goBack()}
+                onPress={handleGoBack}
               >
                 <Ionicons
                   name="arrow-back"
@@ -220,44 +167,31 @@ export default function SignupScreen({ navigation }: Props) {
             </View>
 
             {/* Logo Section */}
-            <Animated.View style={[styles.logoSection, logoAnimatedStyle]}>
+            <View style={styles.logoSection}>
               <View style={styles.logoContainer}>
                 <LinearGradient
-                  colors={[theme.colors.background.elevated, theme.colors.background.primary]}
+                  colors={[
+                    theme.colors.background.elevated,
+                    theme.colors.background.primary,
+                  ]}
                   style={styles.logoGradient}
                 >
-                  <Ionicons name="car-sport" size={48} color={theme.colors.primary[600]} />
+                  <Ionicons
+                    name="person-add"
+                    size={48}
+                    color={theme.colors.primary[600]}
+                  />
                 </LinearGradient>
               </View>
               <Text style={styles.welcomeTitle}>Opprett konto</Text>
-              <Text style={styles.welcomeSubtitle}>Start din førerkortutstilling i dag</Text>
-            </Animated.View>
+              <Text style={styles.welcomeSubtitle}>
+                Start din læringsreise i dag
+              </Text>
+            </View>
 
             {/* Signup Form */}
-            <Animated.View style={[styles.formSection, formAnimatedStyle]}>
-              <PremiumCard variant="elevated" padding="large" style={styles.formCard}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Navn</Text>
-                  <View style={styles.inputWrapper}>
-                    <Ionicons
-                      name="person-outline"
-                      size={20}
-                      color={theme.colors.text.secondary}
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.textInput}
-                      value={name}
-                      onChangeText={setName}
-                      placeholder="Ditt navn"
-                      placeholderTextColor={theme.colors.text.secondary}
-                      autoCapitalize="words"
-                      autoCorrect={false}
-                      editable={!loading && !authLoading}
-                    />
-                  </View>
-                </View>
-
+            <View style={styles.formSection}>
+              <Card variant="elevated" padding="large" style={styles.formCard}>
                 <View style={styles.inputContainer}>
                   <Text style={styles.inputLabel}>E-postadresse</Text>
                   <View style={styles.inputWrapper}>
@@ -294,7 +228,7 @@ export default function SignupScreen({ navigation }: Props) {
                       style={[styles.textInput, styles.passwordInput]}
                       value={password}
                       onChangeText={setPassword}
-                      placeholder="Minimum 6 tegn"
+                      placeholder="Minst 6 tegn"
                       placeholderTextColor={theme.colors.text.secondary}
                       secureTextEntry={!showPassword}
                       autoCorrect={false}
@@ -311,33 +245,6 @@ export default function SignupScreen({ navigation }: Props) {
                       />
                     </TouchableOpacity>
                   </View>
-                  {password.length > 0 && (
-                    <View style={styles.passwordStrength}>
-                      <View style={styles.strengthBarContainer}>
-                        {[1, 2, 3, 4, 5].map((index) => (
-                          <View
-                            key={index}
-                            style={[
-                              styles.strengthBar,
-                              {
-                                backgroundColor: index <= passwordStrength
-                                  ? getPasswordStrengthColor(passwordStrength)
-                                  : theme.colors.neutral[200],
-                              },
-                            ]}
-                          />
-                        ))}
-                      </View>
-                      <Text
-                        style={[
-                          styles.strengthText,
-                          { color: getPasswordStrengthColor(passwordStrength) },
-                        ]}
-                      >
-                        {getPasswordStrengthText(passwordStrength)}
-                      </Text>
-                    </View>
-                  )}
                 </View>
 
                 <View style={styles.inputContainer}>
@@ -353,18 +260,24 @@ export default function SignupScreen({ navigation }: Props) {
                       style={[styles.textInput, styles.passwordInput]}
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
-                      placeholder="Gjenta passordet"
+                      placeholder="Skriv passordet på nytt"
                       placeholderTextColor={theme.colors.text.secondary}
                       secureTextEntry={!showConfirmPassword}
                       autoCorrect={false}
                       editable={!loading && !authLoading}
                     />
                     <TouchableOpacity
-                      onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onPress={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       style={styles.eyeButton}
                     >
                       <Ionicons
-                        name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                        name={
+                          showConfirmPassword
+                            ? "eye-off-outline"
+                            : "eye-outline"
+                        }
                         size={20}
                         color={theme.colors.text.secondary}
                       />
@@ -372,9 +285,9 @@ export default function SignupScreen({ navigation }: Props) {
                   </View>
                 </View>
 
-                <PremiumButton
-                  title={loading || authLoading ? undefined : "Opprett konto"}
-                  onPress={handleSignUp}
+                <Button
+                  title={loading || authLoading ? "Laster..." : "Opprett konto"}
+                  onPress={handleSignup}
                   variant="primary"
                   size="large"
                   fullWidth
@@ -382,23 +295,32 @@ export default function SignupScreen({ navigation }: Props) {
                   style={styles.signupButton}
                   icon={
                     loading || authLoading ? (
-                      <ActivityIndicator size="small" color={theme.colors.text.inverse} />
+                      <ActivityIndicator
+                        size="small"
+                        color={theme.colors.text.inverse}
+                      />
                     ) : (
-                      <Ionicons name="person-add-outline" size={20} color={theme.colors.text.inverse} />
+                      <Ionicons
+                        name="person-add-outline"
+                        size={20}
+                        color={theme.colors.text.inverse}
+                      />
                     )
                   }
                 />
-
-              </PremiumCard>
+              </Card>
 
               {/* Login Link */}
               <View style={styles.loginSection}>
                 <Text style={styles.loginText}>Har du allerede en konto?</Text>
-                <TouchableOpacity onPress={handleLogin} style={styles.loginButton}>
+                <TouchableOpacity
+                  onPress={handleLogin}
+                  style={styles.loginButton}
+                >
                   <Text style={styles.loginButtonText}>Logg inn</Text>
                 </TouchableOpacity>
               </View>
-            </Animated.View>
+            </View>
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
@@ -406,167 +328,151 @@ export default function SignupScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  gradient: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
-  },
-  header: {
-    paddingVertical: theme.spacing.md,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoSection: {
-    alignItems: 'center',
-    paddingVertical: theme.spacing.xl,
-  },
-  logoContainer: {
-    marginBottom: theme.spacing.lg,
-    ...theme.shadows.xl,
-  },
-  logoGradient: {
-    width: 96,
-    height: 96,
-    borderRadius: theme.borderRadius['2xl'],
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  welcomeTitle: {
-    fontSize: theme.typography.fontSize['3xl'],
-    fontWeight: '700',
-    color: theme.colors.text.inverse,
-    marginBottom: theme.spacing.xs,
-    textAlign: 'center',
-  },
-  welcomeSubtitle: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.inverse,
-    opacity: 0.9,
-    textAlign: 'center',
-  },
-  formSection: {
-    flex: 1,
-  },
-  formCard: {
-    marginBottom: theme.spacing.xl,
-  },
-  inputContainer: {
-    marginBottom: theme.spacing.lg,
-  },
-  inputLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: '600',
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.xs,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background.elevated,
-    borderRadius: theme.borderRadius.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.neutral[200],
-    paddingHorizontal: theme.spacing.md,
-  },
-  inputIcon: {
-    marginRight: theme.spacing.sm,
-  },
-  textInput: {
-    flex: 1,
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.primary,
-    paddingVertical: theme.spacing.md,
-  },
-  passwordInput: {
-    paddingRight: theme.spacing.sm,
-  },
-  eyeButton: {
-    padding: theme.spacing.xs,
-  },
-  passwordStrength: {
-    marginTop: theme.spacing.sm,
-  },
-  strengthBarContainer: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.xs,
-  },
-  strengthBar: {
-    flex: 1,
-    height: 3,
-    borderRadius: theme.borderRadius.sm,
-  },
-  strengthText: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: '600',
-  },
-  signupButton: {
-    marginTop: theme.spacing.sm,
-  },
-  loginSection: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: theme.spacing.lg,
-  },
-  loginText: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.inverse,
-    opacity: 0.9,
-  },
-  loginButton: {
-    marginLeft: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-  },
-  loginButtonText: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.inverse,
-    fontWeight: '700',
-    textDecorationLine: 'underline',
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: theme.spacing.lg,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: theme.colors.neutral[300],
-  },
-  dividerText: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondary,
-    marginHorizontal: theme.spacing.md,
-    fontWeight: '600',
-  },
-  googleButtonContainer: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.sm,
-  },
-  googleButton: {
-    width: '100%',
-  },
-  googleLoadingContainer: {
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+const createStyles = (insets: ReturnType<typeof useSafeAreaInsets>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    gradient: {
+      flex: 1,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: Math.max(theme.spacing.xl, insets.bottom),
+    },
+    header: {
+      paddingVertical: theme.spacing.md,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: theme.borderRadius.full,
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    logoSection: {
+      alignItems: "center",
+      paddingVertical: theme.spacing.xl,
+    },
+    logoContainer: {
+      marginBottom: theme.spacing.lg,
+      ...theme.shadows.xl,
+    },
+    logoGradient: {
+      width: 96,
+      height: 96,
+      borderRadius: theme.borderRadius["2xl"],
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    welcomeTitle: {
+      fontSize: theme.typography.fontSize["3xl"],
+      fontWeight: "700",
+      color: theme.colors.text.inverse,
+      marginBottom: theme.spacing.xs,
+      textAlign: "center",
+    },
+    welcomeSubtitle: {
+      fontSize: theme.typography.fontSize.base,
+      color: theme.colors.text.inverse,
+      opacity: 0.9,
+      textAlign: "center",
+    },
+    formSection: {
+      flex: 1,
+    },
+    formCard: {
+      marginBottom: theme.spacing.xl,
+    },
+    inputContainer: {
+      marginBottom: theme.spacing.lg,
+    },
+    inputLabel: {
+      fontSize: theme.typography.fontSize.sm,
+      fontWeight: "600",
+      color: theme.colors.text.primary,
+      marginBottom: theme.spacing.xs,
+    },
+    inputWrapper: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.colors.background.elevated,
+      borderRadius: theme.borderRadius.lg,
+      borderWidth: 1,
+      borderColor: theme.colors.neutral[200],
+      paddingHorizontal: theme.spacing.md,
+    },
+    inputIcon: {
+      marginRight: theme.spacing.sm,
+    },
+    textInput: {
+      flex: 1,
+      fontSize: theme.typography.fontSize.base,
+      color: theme.colors.text.primary,
+      paddingVertical: theme.spacing.md,
+    },
+    passwordInput: {
+      paddingRight: theme.spacing.sm,
+    },
+    eyeButton: {
+      padding: theme.spacing.xs,
+    },
+    signupButton: {
+      marginTop: theme.spacing.sm,
+    },
+    loginSection: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: theme.spacing.lg,
+    },
+    loginText: {
+      fontSize: theme.typography.fontSize.base,
+      color: theme.colors.text.inverse,
+      opacity: 0.9,
+    },
+    loginButton: {
+      marginLeft: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.sm,
+      paddingVertical: theme.spacing.xs,
+    },
+    loginButtonText: {
+      fontSize: theme.typography.fontSize.base,
+      color: theme.colors.text.inverse,
+      fontWeight: "700",
+      textDecorationLine: "underline",
+    },
+    dividerContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginVertical: theme.spacing.lg,
+    },
+    divider: {
+      flex: 1,
+      height: 1,
+      backgroundColor: theme.colors.neutral[300],
+    },
+    dividerText: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.text.secondary,
+      marginHorizontal: theme.spacing.md,
+      fontWeight: "600",
+    },
+    googleButtonContainer: {
+      alignItems: "center",
+      marginBottom: theme.spacing.sm,
+    },
+    googleButton: {
+      width: "100%",
+    },
+    googleLoadingContainer: {
+      height: 48,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+  });

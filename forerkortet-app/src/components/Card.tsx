@@ -11,9 +11,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { premiumTheme } from "../constants/premiumTheme";
+import { theme } from "../constants/theme";
 
-interface PremiumCardProps {
+interface CardProps {
   children: React.ReactNode;
   variant?: "elevated" | "flat" | "gradient" | "blur" | "neumorphic";
   padding?: "none" | "small" | "medium" | "large";
@@ -25,7 +25,7 @@ interface PremiumCardProps {
 
 const { width } = Dimensions.get("window");
 
-export const PremiumCard: React.FC<PremiumCardProps> = ({
+export const Card: React.FC<CardProps> = ({
   children,
   variant = "elevated",
   padding = "medium",
@@ -71,23 +71,23 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
       case "none":
         return 0;
       case "small":
-        return premiumTheme.spacing.sm;
+        return theme.spacing.sm;
       case "large":
-        return premiumTheme.spacing.lg;
+        return theme.spacing.lg;
       default:
-        return premiumTheme.spacing.md;
+        return theme.spacing.md;
     }
   };
 
   const renderCard = () => {
-    const cardContent = <View style={{ padding: getPadding() }}>{children}</View>;
+    const cardContent = <View style={{ padding: getPadding(), flex: 1 }}>{children}</View>;
 
     switch (variant) {
       case "gradient":
         return (
           <LinearGradient
             colors={
-              gradientColors || premiumTheme.colors.background.gradient.background
+              gradientColors || theme.colors.background.gradient.background
             }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -102,7 +102,7 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
           <BlurView
             intensity={40}
             tint="light"
-            style={[styles.card, styles.blur]}
+            style={[styles.card, styles.blur, { flex: 1 }]}
           >
             {cardContent}
           </BlurView>
@@ -134,7 +134,7 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
   };
 
   return (
-    <Animated.View style={[animatedStyle, style]}>
+    <Animated.View style={[animatedStyle, style, { flex: style?.flex || undefined }]}>
       {renderCard()}
     </Animated.View>
   );
@@ -142,31 +142,31 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: premiumTheme.borderRadius.xl,
-    backgroundColor: premiumTheme.colors.background.elevated,
+    borderRadius: theme.borderRadius.xl,
+    backgroundColor: theme.colors.background.elevated,
     overflow: "hidden",
   },
   elevated: {
-    ...premiumTheme.shadows.lg,
-    backgroundColor: premiumTheme.colors.background.elevated,
+    ...theme.shadows.lg,
+    backgroundColor: theme.colors.background.elevated,
   },
   flat: {
-    backgroundColor: premiumTheme.colors.background.secondary,
+    backgroundColor: theme.colors.background.secondary,
   },
   blur: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
   neumorphic: {
-    backgroundColor: premiumTheme.colors.background.secondary,
-    shadowColor: premiumTheme.colors.neutral[300],
+    backgroundColor: theme.colors.background.secondary,
+    shadowColor: theme.colors.neutral[300],
     shadowOffset: { width: -6, height: -6 },
     shadowOpacity: 0.5,
     shadowRadius: 6,
     elevation: 8,
   },
   neumorphicInner: {
-    backgroundColor: premiumTheme.colors.background.secondary,
-    shadowColor: premiumTheme.colors.neutral[500],
+    backgroundColor: theme.colors.background.secondary,
+    shadowColor: theme.colors.neutral[500],
     shadowOffset: { width: 6, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 6,

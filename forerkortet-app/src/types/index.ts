@@ -9,7 +9,7 @@ export interface Question {
   signId?: string;
   imageUrl?: string;
   signImageUrl?: string;
-  difficulty?: 'easy' | 'medium' | 'hard';
+  difficulty?: "easy" | "medium" | "hard";
 }
 
 export interface TestResult {
@@ -61,5 +61,4 @@ export type RootStackParamList = {
   Question: undefined;
   TestResults: { testId: string };
   Progress: undefined;
-  AdminMigration: undefined;
 };

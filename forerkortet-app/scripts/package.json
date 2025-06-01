@@ -1,0 +1,13 @@
+{
+  "name": "forerkortet-scripts",
+  "version": "1.0.0",
+  "description": "Setup and migration scripts for Forerkortet Firebase",
+  "scripts": {
+    "setup:firebase": "node setupFirestore.js",
+    "deploy-rules": "cd .. && firebase deploy --only firestore:rules",
+    "deploy-indexes": "cd .. && firebase deploy --only firestore:indexes"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}

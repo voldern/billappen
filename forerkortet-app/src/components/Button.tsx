@@ -19,9 +19,9 @@ import Animated, {
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
-import { premiumTheme } from "../constants/premiumTheme";
+import { theme } from "../constants/theme";
 
-interface PremiumButtonProps {
+interface ButtonProps {
   onPress: () => void;
   title: string;
   variant?: "primary" | "secondary" | "ghost" | "blur" | "white";
@@ -35,7 +35,7 @@ interface PremiumButtonProps {
 
 const { width } = Dimensions.get("window");
 
-export const PremiumButton: React.FC<PremiumButtonProps> = ({
+export const Button: React.FC<ButtonProps> = ({
   onPress,
   title,
   variant = "primary",
@@ -118,8 +118,8 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
           <LinearGradient
             colors={
               disabled
-                ? [premiumTheme.colors.neutral[300], premiumTheme.colors.neutral[400]]
-                : premiumTheme.colors.background.gradient.primary
+                ? [theme.colors.neutral[300], theme.colors.neutral[400]]
+                : theme.colors.background.gradient.primary
             }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -160,18 +160,18 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
     switch (variant) {
       case "primary":
       case "blur":
-        return { color: premiumTheme.colors.text.inverse };
+        return { color: theme.colors.text.inverse };
       case "white":
         return { 
-          color: premiumTheme.colors.text.primary,
+          color: theme.colors.text.primary,
           fontWeight: "700",
         };
       case "secondary":
-        return { color: premiumTheme.colors.primary[600] };
+        return { color: theme.colors.primary[600] };
       case "ghost":
-        return { color: premiumTheme.colors.text.primary };
+        return { color: theme.colors.text.primary };
       default:
-        return { color: premiumTheme.colors.text.primary };
+        return { color: theme.colors.text.primary };
     }
   };
 
@@ -193,9 +193,9 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: premiumTheme.borderRadius.full,
+    borderRadius: theme.borderRadius.full,
     overflow: "hidden",
-    ...premiumTheme.shadows.md,
+    ...theme.shadows.md,
   },
   fullWidth: {
     width: "100%",
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   iconContainer: {
-    marginRight: premiumTheme.spacing.sm,
+    marginRight: theme.spacing.sm,
   },
   gradient: {
     justifyContent: "center",
@@ -222,15 +222,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   secondary: {
-    backgroundColor: premiumTheme.colors.primary[50],
+    backgroundColor: theme.colors.primary[50],
     borderWidth: 2,
-    borderColor: premiumTheme.colors.primary[200],
+    borderColor: theme.colors.primary[200],
   },
   ghost: {
     backgroundColor: "transparent",
   },
   white: {
-    backgroundColor: premiumTheme.colors.background.primary,
+    backgroundColor: theme.colors.background.primary,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -241,30 +241,30 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   small: {
-    paddingHorizontal: premiumTheme.spacing.md,
-    paddingVertical: premiumTheme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
     minHeight: 40,
   },
   medium: {
-    paddingHorizontal: premiumTheme.spacing.lg,
-    paddingVertical: premiumTheme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
     minHeight: 52,
   },
   large: {
-    paddingHorizontal: premiumTheme.spacing.xl,
-    paddingVertical: premiumTheme.spacing.lg,
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.lg,
     minHeight: 64,
   },
   textSmall: {
-    fontSize: premiumTheme.typography.fontSize.sm,
-    fontWeight: premiumTheme.typography.fontWeight.semibold,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
   },
   textMedium: {
-    fontSize: premiumTheme.typography.fontSize.base,
-    fontWeight: premiumTheme.typography.fontWeight.semibold,
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.semibold,
   },
   textLarge: {
-    fontSize: premiumTheme.typography.fontSize.lg,
-    fontWeight: premiumTheme.typography.fontWeight.bold,
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
   },
 });

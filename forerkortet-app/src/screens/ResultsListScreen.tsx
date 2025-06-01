@@ -13,14 +13,15 @@ import { RootStackParamList, TestResult } from "../types";
 import { RootState, AppDispatch } from "../store";
 import { setResults } from "../store/resultsSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { premiumTheme as theme } from "../constants/premiumTheme";
-import { PremiumButton } from "../components/PremiumButton";
+import { theme } from "../constants/theme";
+import { Button } from "../components/Button";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
-
-const { width } = Dimensions.get("window");
 
 type ResultsListScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -34,6 +35,8 @@ interface Props {
 export default function ResultsListScreen({ navigation }: Props) {
   const dispatch = useDispatch<AppDispatch>();
   const results = useSelector((state: RootState) => state.results.results);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(insets);
 
   useEffect(() => {
     loadResults();
@@ -97,7 +100,13 @@ export default function ResultsListScreen({ navigation }: Props) {
     return "refresh";
   };
 
-  const renderResult = ({ item, index }: { item: TestResult; index: number }) => {
+  const renderResult = ({
+    item,
+    index,
+  }: {
+    item: TestResult;
+    index: number;
+  }) => {
     const percentage = Math.round((item.score / item.totalQuestions) * 100);
     const scoreColor = getScoreColor(item.score, item.totalQuestions);
     const scoreIcon = getScoreIcon(item.score, item.totalQuestions);
@@ -109,7 +118,7 @@ export default function ResultsListScreen({ navigation }: Props) {
       >
         <TouchableOpacity
           style={styles.resultCard}
-          onPress={() => navigation.navigate("TestResults", { testId: item.id })}
+          onPress={() => navigation.push("TestResults", { testId: item.id })}
           activeOpacity={0.7}
         >
           <LinearGradient
@@ -126,7 +135,11 @@ export default function ResultsListScreen({ navigation }: Props) {
                     { backgroundColor: scoreColor + "20" },
                   ]}
                 >
-                  <Ionicons name={scoreIcon as any} size={24} color={scoreColor} />
+                  <Ionicons
+                    name={scoreIcon as any}
+                    size={24}
+                    color={scoreColor}
+                  />
                 </View>
                 <View style={styles.resultInfo}>
                   <Text style={styles.resultDate}>{formatDate(item.date)}</Text>
@@ -205,9 +218,9 @@ export default function ResultsListScreen({ navigation }: Props) {
               <Text style={styles.emptyText}>
                 Start din første test og se resultatene dine her
               </Text>
-              <PremiumButton
+              <Button
                 title="Start Test"
-                onPress={() => navigation.navigate("NewTest")}
+                onPress={() => navigation.push("NewTest")}
                 variant="primary"
                 size="large"
                 style={{ marginTop: theme.spacing.xl }}
@@ -232,9 +245,14 @@ export default function ResultsListScreen({ navigation }: Props) {
               ItemSeparatorComponent={() => <View style={styles.separator} />}
             />
             <View style={styles.footer}>
-              <PremiumButton
+              <Button
                 title="Tilbake til hovedmeny"
-                onPress={() => navigation.navigate("Landing")}
+                onPress={() =>
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: "Landing" }],
+                  })
+                }
                 variant="secondary"
                 size="large"
                 icon={
@@ -253,153 +271,154 @@ export default function ResultsListScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background.primary,
-  },
-  gradient: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    backgroundColor: theme.colors.background.primary,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.neutral[100],
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.background.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    ...theme.shadows.sm,
-  },
-  headerTitle: {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: "700",
-    color: theme.colors.text.primary,
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  listContainer: {
-    padding: theme.spacing.lg,
-    paddingBottom: theme.spacing["3xl"],
-  },
-  resultCardWrapper: {
-    marginBottom: theme.spacing.md,
-  },
-  resultCard: {
-    borderRadius: theme.borderRadius.xl,
-    overflow: "hidden",
-    ...theme.shadows.md,
-  },
-  resultGradient: {
-    padding: theme.spacing.lg,
-  },
-  resultContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  resultLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  scoreIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: theme.borderRadius.full,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: theme.spacing.md,
-  },
-  resultInfo: {
-    flex: 1,
-  },
-  resultDate: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: "600",
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.xs,
-  },
-  resultStats: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.xs,
-  },
-  resultDuration: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondary,
-  },
-  statDivider: {
-    width: 1,
-    height: 12,
-    backgroundColor: theme.colors.neutral[300],
-    marginHorizontal: theme.spacing.xs,
-  },
-  resultQuestions: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondary,
-  },
-  resultRight: {
-    alignItems: "flex-end",
-  },
-  percentageText: {
-    fontSize: theme.typography.fontSize["2xl"],
-    fontWeight: "700",
-    marginBottom: theme.spacing.xs,
-  },
-  scoreText: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondary,
-    fontWeight: "500",
-  },
-  separator: {
-    height: theme.spacing.xs,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: theme.spacing.xl,
-  },
-  emptyContent: {
-    alignItems: "center",
-  },
-  emptyIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.neutral[50],
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: theme.spacing.lg,
-  },
-  emptyTitle: {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: "700",
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.sm,
-  },
-  emptyText: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.secondary,
-    textAlign: "center",
-    marginBottom: theme.spacing.xl,
-  },
-  footer: {
-    padding: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
-    backgroundColor: theme.colors.background.primary,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.neutral[100],
-  },
-});
+const createStyles = (insets: ReturnType<typeof useSafeAreaInsets>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background.primary,
+    },
+    gradient: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.md,
+      backgroundColor: theme.colors.background.primary,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.neutral[100],
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: theme.borderRadius.full,
+      backgroundColor: theme.colors.background.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      ...theme.shadows.sm,
+    },
+    headerTitle: {
+      fontSize: theme.typography.fontSize.xl,
+      fontWeight: "700",
+      color: theme.colors.text.primary,
+    },
+    headerSpacer: {
+      width: 40,
+    },
+    listContainer: {
+      padding: theme.spacing.lg,
+      paddingBottom: Math.max(theme.spacing["3xl"], insets.bottom),
+    },
+    resultCardWrapper: {
+      marginBottom: theme.spacing.md,
+    },
+    resultCard: {
+      borderRadius: theme.borderRadius.xl,
+      overflow: "hidden",
+      ...theme.shadows.md,
+    },
+    resultGradient: {
+      padding: theme.spacing.lg,
+    },
+    resultContent: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    resultLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    scoreIconContainer: {
+      width: 48,
+      height: 48,
+      borderRadius: theme.borderRadius.full,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: theme.spacing.md,
+    },
+    resultInfo: {
+      flex: 1,
+    },
+    resultDate: {
+      fontSize: theme.typography.fontSize.base,
+      fontWeight: "600",
+      color: theme.colors.text.primary,
+      marginBottom: theme.spacing.xs,
+    },
+    resultStats: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+    },
+    resultDuration: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.text.secondary,
+    },
+    statDivider: {
+      width: 1,
+      height: 12,
+      backgroundColor: theme.colors.neutral[300],
+      marginHorizontal: theme.spacing.xs,
+    },
+    resultQuestions: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.text.secondary,
+    },
+    resultRight: {
+      alignItems: "flex-end",
+    },
+    percentageText: {
+      fontSize: theme.typography.fontSize["2xl"],
+      fontWeight: "700",
+      marginBottom: theme.spacing.xs,
+    },
+    scoreText: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.text.secondary,
+      fontWeight: "500",
+    },
+    separator: {
+      height: theme.spacing.xs,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: theme.spacing.xl,
+    },
+    emptyContent: {
+      alignItems: "center",
+    },
+    emptyIconContainer: {
+      width: 120,
+      height: 120,
+      borderRadius: theme.borderRadius.full,
+      backgroundColor: theme.colors.neutral[50],
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: theme.spacing.lg,
+    },
+    emptyTitle: {
+      fontSize: theme.typography.fontSize.xl,
+      fontWeight: "700",
+      color: theme.colors.text.primary,
+      marginBottom: theme.spacing.sm,
+    },
+    emptyText: {
+      fontSize: theme.typography.fontSize.base,
+      color: theme.colors.text.secondary,
+      textAlign: "center",
+      marginBottom: theme.spacing.xl,
+    },
+    footer: {
+      padding: theme.spacing.lg,
+      paddingBottom: Math.max(theme.spacing.xl, insets.bottom),
+      backgroundColor: theme.colors.background.primary,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.neutral[100],
+    },
+  });

@@ -37,3 +37,6 @@ yarn-error.*
 *.tsbuildinfo
 
 firebase-admin.json
+
+android
+ios

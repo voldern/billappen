@@ -7,13 +7,16 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, Category } from "../types";
-import { premiumTheme as theme } from "../constants/premiumTheme";
-import { PremiumCard } from "../components/PremiumCard";
+import { theme } from "../constants/theme";
+import { Card } from "../components/Card";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import firebaseQuestionService from "../services/firebaseQuestionService";
 import { useAuthGuard } from "../hooks/useAuthGuard";
@@ -36,49 +39,49 @@ interface CategoryInfo {
 
 // Category metadata with icons and descriptions
 const categoryMetadata: Record<string, CategoryInfo> = {
-  "Fartsregler": {
+  Fartsregler: {
     name: "Fartsregler",
     icon: "speedometer-outline",
     color: theme.colors.primary[600],
     description: "Fartsgrenser og hastighetskontroll",
   },
-  "Vikeplikt": {
+  Vikeplikt: {
     name: "Vikeplikt",
-    icon: "stop-outline", 
+    icon: "stop-outline",
     color: theme.colors.semantic.error.main,
     description: "Vikepliktsregler og forkjørsrett",
   },
-  "Trafikklys": {
+  Trafikklys: {
     name: "Trafikklys",
     icon: "traffic-cone-outline",
     color: theme.colors.semantic.warning.main,
     description: "Trafikklyssignaler og reguleringer",
   },
-  "Lysbruk": {
+  Lysbruk: {
     name: "Lysbruk",
     icon: "bulb-outline",
     color: theme.colors.accent.main,
     description: "Bruk av lys på kjøretøy",
   },
-  "Avstand": {
+  Avstand: {
     name: "Avstand",
     icon: "resize-outline",
     color: theme.colors.purple[600],
     description: "Følgeavstand og sikkerhetsmarginer",
   },
-  "Bremselengde": {
+  Bremselengde: {
     name: "Bremselengde",
     icon: "hand-left-outline",
     color: theme.colors.semantic.error.dark,
     description: "Beregning av bremselengde",
   },
-  "Promille": {
+  Promille: {
     name: "Promille",
     icon: "wine-outline",
     color: theme.colors.semantic.error.light,
     description: "Alkoholgrenser og regler",
   },
-  "Ulykker": {
+  Ulykker: {
     name: "Ulykker",
     icon: "medical-outline",
     color: theme.colors.semantic.info.main,
@@ -94,6 +97,7 @@ const categoryMetadata: Record<string, CategoryInfo> = {
 
 export default function CategorySelectionScreen({ navigation }: Props) {
   const { user, loading: authLoading } = useAuthGuard();
+  const insets = useSafeAreaInsets();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -116,16 +120,16 @@ export default function CategorySelectionScreen({ navigation }: Props) {
   };
 
   const handleCategorySelect = (category: Category) => {
-    navigation.navigate("NewTest", { 
+    navigation.push("NewTest", {
       selectedCategory: category.id,
-      categoryName: category.name 
+      categoryName: category.name,
     });
   };
 
   const handleAllCategories = () => {
-    navigation.navigate("NewTest", { 
+    navigation.push("NewTest", {
       selectedCategory: undefined,
-      categoryName: "Alle kategorier" 
+      categoryName: "Alle kategorier",
     });
   };
 
@@ -134,7 +138,8 @@ export default function CategorySelectionScreen({ navigation }: Props) {
       name: category.name,
       icon: "help-outline",
       color: theme.colors.neutral[500],
-      description: category.description || "Spørsmål om " + category.name.toLowerCase(),
+      description:
+        category.description || "Spørsmål om " + category.name.toLowerCase(),
     };
 
     return (
@@ -149,19 +154,37 @@ export default function CategorySelectionScreen({ navigation }: Props) {
           style={styles.categoryTouchable}
         >
           <LinearGradient
-            colors={[theme.colors.background.primary, theme.colors.background.elevated]}
+            colors={[
+              theme.colors.background.primary,
+              theme.colors.background.elevated,
+            ]}
             style={styles.categoryCard}
           >
             <View style={styles.categoryContent}>
-              <View style={[styles.categoryIcon, { backgroundColor: metadata.color + "15" }]}>
-                <Ionicons name={metadata.icon as any} size={28} color={metadata.color} />
+              <View
+                style={[
+                  styles.categoryIcon,
+                  { backgroundColor: metadata.color + "15" },
+                ]}
+              >
+                <Ionicons
+                  name={metadata.icon as any}
+                  size={28}
+                  color={metadata.color}
+                />
               </View>
               <View style={styles.categoryTextContainer}>
                 <Text style={styles.categoryTitle}>{metadata.name}</Text>
-                <Text style={styles.categoryDescription}>{metadata.description}</Text>
+                <Text style={styles.categoryDescription}>
+                  {metadata.description}
+                </Text>
               </View>
               <View style={styles.categoryArrow}>
-                <Ionicons name="chevron-forward" size={24} color={metadata.color} />
+                <Ionicons
+                  name="chevron-forward"
+                  size={24}
+                  color={metadata.color}
+                />
               </View>
             </View>
           </LinearGradient>
@@ -182,7 +205,11 @@ export default function CategorySelectionScreen({ navigation }: Props) {
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
-            <Ionicons name="arrow-back" size={24} color={theme.colors.text.primary} />
+            <Ionicons
+              name="arrow-back"
+              size={24}
+              color={theme.colors.text.primary}
+            />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Velg kategori</Text>
           <View style={styles.headerSpacer} />
@@ -190,15 +217,23 @@ export default function CategorySelectionScreen({ navigation }: Props) {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingBottom: Math.max(
+                insets.bottom + theme.spacing["2xl"],
+                theme.spacing["3xl"]
+              ),
+            },
+          ]}
         >
           {/* All Categories Option */}
           <Animated.View
             entering={FadeInDown.delay(50).springify()}
             style={styles.allCategoriesWrapper}
           >
-            <TouchableOpacity 
-              onPress={handleAllCategories} 
+            <TouchableOpacity
+              onPress={handleAllCategories}
               activeOpacity={0.8}
               style={styles.allCategoriesTouchable}
             >
@@ -210,16 +245,26 @@ export default function CategorySelectionScreen({ navigation }: Props) {
               >
                 <View style={styles.allCategoriesContent}>
                   <View style={styles.allCategoriesIcon}>
-                    <Ionicons name="apps" size={28} color={theme.colors.text.inverse} />
+                    <Ionicons
+                      name="apps"
+                      size={28}
+                      color={theme.colors.text.inverse}
+                    />
                   </View>
                   <View style={styles.allCategoriesText}>
-                    <Text style={styles.allCategoriesTitle}>Alle kategorier</Text>
+                    <Text style={styles.allCategoriesTitle}>
+                      Alle kategorier
+                    </Text>
                     <Text style={styles.allCategoriesDescription}>
                       Øv deg på spørsmål fra alle kategorier
                     </Text>
                   </View>
                   <View style={styles.allCategoriesArrow}>
-                    <Ionicons name="chevron-forward" size={24} color={theme.colors.text.inverse} />
+                    <Ionicons
+                      name="chevron-forward"
+                      size={24}
+                      color={theme.colors.text.inverse}
+                    />
                   </View>
                 </View>
               </LinearGradient>
@@ -232,12 +277,17 @@ export default function CategorySelectionScreen({ navigation }: Props) {
           {/* Categories List */}
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={theme.colors.primary[600]} />
+              <ActivityIndicator
+                size="large"
+                color={theme.colors.primary[600]}
+              />
               <Text style={styles.loadingText}>Laster kategorier...</Text>
             </View>
           ) : (
             <View style={styles.categoriesContainer}>
-              {categories.map((category, index) => renderCategoryCard(category, index))}
+              {categories.map((category, index) =>
+                renderCategoryCard(category, index)
+              )}
             </View>
           )}
         </ScrollView>
@@ -283,7 +333,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.lg,
-    paddingBottom: theme.spacing["3xl"],
   },
   allCategoriesWrapper: {
     marginBottom: theme.spacing["2xl"],

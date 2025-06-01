@@ -18,7 +18,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { premiumTheme } from "../constants/premiumTheme";
+import { theme } from "../constants/theme";
 
 interface AnimatedAnswerOptionProps {
   option: string;
@@ -116,34 +116,34 @@ export const AnimatedAnswerOption: React.FC<AnimatedAnswerOptionProps> = ({
   const getBackgroundColor = () => {
     if (!showResult) {
       return isSelected
-        ? premiumTheme.colors.primary[50]
-        : premiumTheme.colors.background.secondary;
+        ? theme.colors.primary[50]
+        : theme.colors.background.secondary;
     }
 
     if (isCorrect) {
-      return premiumTheme.colors.semantic.success.light;
+      return theme.colors.semantic.success.light;
     }
 
     if (isSelected && !isCorrect) {
-      return premiumTheme.colors.semantic.error.light;
+      return theme.colors.semantic.error.light;
     }
 
-    return premiumTheme.colors.background.secondary;
+    return theme.colors.background.secondary;
   };
 
   const getBorderColor = () => {
     if (!showResult) {
       return isSelected
-        ? premiumTheme.colors.primary[400]
+        ? theme.colors.primary[400]
         : "transparent";
     }
 
     if (isCorrect) {
-      return premiumTheme.colors.semantic.success.main;
+      return theme.colors.semantic.success.main;
     }
 
     if (isSelected && !isCorrect) {
-      return premiumTheme.colors.semantic.error.main;
+      return theme.colors.semantic.error.main;
     }
 
     return "transparent";
@@ -173,7 +173,7 @@ export const AnimatedAnswerOption: React.FC<AnimatedAnswerOptionProps> = ({
                 styles.selectionBorder,
                 borderStyle,
                 {
-                  borderColor: premiumTheme.colors.primary[400],
+                  borderColor: theme.colors.primary[400],
                 },
               ]}
             />
@@ -203,7 +203,8 @@ export const AnimatedAnswerOption: React.FC<AnimatedAnswerOptionProps> = ({
                     <Ionicons
                       name="checkmark-circle"
                       size={24}
-                      color={premiumTheme.colors.semantic.success.main}
+                      color={theme.colors.semantic.success.main}
+                      testID="checkmark-circle"
                     />
                     {!isSelected && (
                       <Text style={styles.correctLabel}>Riktig svar</Text>
@@ -214,7 +215,8 @@ export const AnimatedAnswerOption: React.FC<AnimatedAnswerOptionProps> = ({
                     <Ionicons
                       name="close-circle"
                       size={24}
-                      color={premiumTheme.colors.semantic.error.main}
+                      color={theme.colors.semantic.error.main}
+                      testID="close-circle"
                     />
                   )
                 )}
@@ -229,8 +231,8 @@ export const AnimatedAnswerOption: React.FC<AnimatedAnswerOptionProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: premiumTheme.borderRadius.lg,
-    marginBottom: premiumTheme.spacing.sm,
+    borderRadius: theme.borderRadius.lg,
+    marginBottom: theme.spacing.sm,
     overflow: "hidden",
     position: "relative",
   },
@@ -240,52 +242,52 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: premiumTheme.borderRadius.lg,
+    borderRadius: theme.borderRadius.lg,
     borderWidth: 2,
   },
   content: {
     flexDirection: "row",
     alignItems: "center",
-    padding: premiumTheme.spacing.md,
+    padding: theme.spacing.md,
   },
   indexContainer: {
     width: 36,
     height: 36,
-    borderRadius: premiumTheme.borderRadius.md,
-    backgroundColor: premiumTheme.colors.neutral[100],
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.neutral[100],
     justifyContent: "center",
     alignItems: "center",
-    marginRight: premiumTheme.spacing.md,
+    marginRight: theme.spacing.md,
   },
   indexText: {
-    fontSize: premiumTheme.typography.fontSize.base,
-    fontWeight: premiumTheme.typography.fontWeight.semibold,
-    color: premiumTheme.colors.text.secondary,
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.text.secondary,
   },
   optionText: {
     flex: 1,
-    fontSize: premiumTheme.typography.fontSize.base,
-    color: premiumTheme.colors.text.primary,
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.text.primary,
     lineHeight:
-      premiumTheme.typography.fontSize.base *
-      premiumTheme.typography.lineHeight.normal,
+      theme.typography.fontSize.base *
+      theme.typography.lineHeight.normal,
   },
   correctText: {
-    color: premiumTheme.colors.semantic.success.text,
-    fontWeight: premiumTheme.typography.fontWeight.medium,
+    color: theme.colors.semantic.success.text,
+    fontWeight: theme.typography.fontWeight.medium,
   },
   incorrectText: {
-    color: premiumTheme.colors.semantic.error.text,
+    color: theme.colors.semantic.error.text,
   },
   iconContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginLeft: premiumTheme.spacing.md,
+    marginLeft: theme.spacing.md,
   },
   correctLabel: {
-    marginLeft: premiumTheme.spacing.xs,
-    fontSize: premiumTheme.typography.fontSize.sm,
-    color: premiumTheme.colors.semantic.success.main,
-    fontWeight: premiumTheme.typography.fontWeight.semibold,
+    marginLeft: theme.spacing.xs,
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.semantic.success.main,
+    fontWeight: theme.typography.fontWeight.semibold,
   },
 });

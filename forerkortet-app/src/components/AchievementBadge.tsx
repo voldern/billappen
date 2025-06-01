@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { premiumTheme as theme } from "../constants/premiumTheme";
+import { theme } from "../constants/theme";
 import Animated, { FadeIn, useAnimatedStyle, withSpring } from "react-native-reanimated";
 
 export interface Achievement {
