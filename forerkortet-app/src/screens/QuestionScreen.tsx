@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ScrollView,
   Platform,
   Image,
@@ -26,7 +25,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import firebaseQuestionService from "../services/firebaseQuestionService";
 import { useAuth } from "../contexts/AuthContext";
 import { getSignImage } from "../assets/signImages";
-import analytics from "@react-native-firebase/analytics";
+import analyticsService from "../services/analyticsService";
+import { showAlert } from "../utils/alert";
 
 type QuestionScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -97,7 +97,7 @@ export default function QuestionScreen({ navigation }: Props) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
 
-    await analytics().logEvent("answer_question", {
+    await analyticsService.logEvent("answer_question", {
       question_id: currentQuestion.id,
       selected_answer: selectedAnswer,
       correct_answer: currentQuestion.correctAnswer,
@@ -221,7 +221,7 @@ export default function QuestionScreen({ navigation }: Props) {
         console.error("Error saving result:", error);
       }
 
-      await analytics().logEvent("finish_test", {
+      await analyticsService.logEvent("finish_test", {
         test_id: testResult.id,
         score: testResult.score,
         total_questions: testResult.totalQuestions,
@@ -239,7 +239,7 @@ export default function QuestionScreen({ navigation }: Props) {
   const handleQuitTest = () => {
     if (isNavigating) return; // Prevent if already navigating
 
-    Alert.alert(
+    showAlert(
       "Avslutt test",
       "Er du sikker på at du vil avslutte testen? Din fremgang vil gå tapt.",
       [
@@ -248,7 +248,7 @@ export default function QuestionScreen({ navigation }: Props) {
           text: "Ja",
           style: "destructive",
           onPress: async () => {
-            await analytics().logEvent("quit_test");
+            await analyticsService.logEvent("quit_test");
 
             setIsNavigating(true);
             // Reset to Landing screen to ensure clean navigation state

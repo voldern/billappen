@@ -1,14 +1,13 @@
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
-import crashlytics from '@react-native-firebase/crashlytics';
+// Platform-agnostic entry point for Firebase
+import { Platform } from 'react-native';
 
-// React Native Firebase is configured automatically via native configuration files
-// (google-services.json for Android and GoogleService-Info.plist for iOS)
-// No initialization code is needed
+// Dynamic import based on platform
+const firebase = Platform.select({
+  web: require('./firebase.web'),
+  default: require('./firebase.native'),
+});
 
-export { auth, firestore as db, crashlytics };
-
-// Enable Crashlytics in production
-if (!__DEV__) {
-  crashlytics().setCrashlyticsCollectionEnabled(true);
-}
+export const auth = firebase.auth;
+export const db = firebase.db;
+export const crashlytics = firebase.crashlytics;
+export const analytics = firebase.analytics;

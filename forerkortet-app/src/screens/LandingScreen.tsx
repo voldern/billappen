@@ -8,6 +8,7 @@ import {
   StatusBar,
   Image,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import {
   SafeAreaView,
@@ -16,7 +17,6 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Alert } from "react-native";
 import { RootStackParamList } from "../types";
 import { theme } from "../constants/theme";
 import { Button } from "../components/Button";
@@ -24,7 +24,8 @@ import { Card } from "../components/Card";
 import { useAuth } from "../contexts/AuthContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { isFeatureEnabled } from "../constants/featureFlags";
-import analytics from "@react-native-firebase/analytics";
+import analyticsService from "../services/analyticsService";
+import { showAlert } from "../utils/alert";
 
 const logo = require("../assets/lappen.png");
 
@@ -109,7 +110,7 @@ export default function LandingScreen({ navigation }: Props) {
   const handleLogout = async () => {
     if (isNavigating.current) return;
 
-    Alert.alert("Logg ut", "Er du sikker på at du vil logge ut?", [
+    showAlert("Logg ut", "Er du sikker på at du vil logge ut?", [
       {
         text: "Avbryt",
         style: "cancel",
@@ -120,7 +121,7 @@ export default function LandingScreen({ navigation }: Props) {
         onPress: async () => {
           isNavigating.current = true;
           await signOut();
-          await analytics().logEvent("logout");
+          await analyticsService.logEvent("logout");
         },
       },
     ]);
@@ -175,7 +176,7 @@ export default function LandingScreen({ navigation }: Props) {
             <View style={styles.headerLeft}>
               {user && (
                 <Text style={styles.welcomeText}>
-                  Hei, {user.email?.split("@")[0]}!
+                  Hei, {user.displayName || user.email?.split("@")[0]}!
                 </Text>
               )}
             </View>

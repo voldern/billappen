@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -26,7 +25,8 @@ import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { useAuth } from "../contexts/AuthContext";
 import { CommonActions } from "@react-navigation/native";
-import analytics from "@react-native-firebase/analytics";
+import analyticsService from "../services/analyticsService";
+import { showAlert } from "../utils/alert";
 
 type SignupScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -49,22 +49,22 @@ export default function SignupScreen({ navigation }: Props) {
 
   const handleSignup = async () => {
     if (!email || !password || !confirmPassword) {
-      Alert.alert("Feil", "Vennligst fyll ut alle feltene");
+      showAlert("Feil", "Vennligst fyll ut alle feltene");
       return;
     }
 
     if (!email.includes("@")) {
-      Alert.alert("Feil", "Vennligst skriv inn en gyldig e-postadresse");
+      showAlert("Feil", "Vennligst skriv inn en gyldig e-postadresse");
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert("Feil", "Passordet må være minst 6 tegn");
+      showAlert("Feil", "Passordet må være minst 6 tegn");
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Feil", "Passordene samsvarer ikke");
+      showAlert("Feil", "Passordene samsvarer ikke");
       return;
     }
 
@@ -76,12 +76,12 @@ export default function SignupScreen({ navigation }: Props) {
 
       if (error) {
         if (error.message.includes("User already registered")) {
-          Alert.alert(
+          showAlert(
             "Konto eksisterer",
             "Det finnes allerede en konto med denne e-postadressen"
           );
         } else {
-          Alert.alert(
+          showAlert(
             "Feil",
             error.message || "En feil oppstod under registrering"
           );
@@ -90,11 +90,11 @@ export default function SignupScreen({ navigation }: Props) {
         // Successful signup
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-        await analytics().logSignUp({
+        await analyticsService.logSignUp({
           method: "email",
         });
 
-        Alert.alert(
+        showAlert(
           "Suksess!",
           "Vennligst sjekk e-posten din for å bekrefte kontoen din før du logger inn.",
           [
@@ -114,7 +114,7 @@ export default function SignupScreen({ navigation }: Props) {
       }
     } catch (error) {
       console.error("Signup error:", error);
-      Alert.alert("Feil", "En uventet feil oppstod. Prøv igjen senere.");
+      showAlert("Feil", "En uventet feil oppstod. Prøv igjen senere.");
     } finally {
       setLoading(false);
     }

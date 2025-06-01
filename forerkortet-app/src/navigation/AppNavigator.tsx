@@ -17,7 +17,7 @@ import TestResultsScreen from "../screens/TestResultsScreen";
 import ProgressScreen from "../screens/ProgressScreen";
 import { theme } from "../constants/theme";
 import { useAuth } from "../contexts/AuthContext";
-import analytics from "@react-native-firebase/analytics";
+import analyticsService from "../services/analyticsService";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -56,7 +56,7 @@ export default function AppNavigator() {
         const previousRouteName = routeNameRef.current;
 
         if (previousRouteName !== currentRouteName) {
-          await analytics().logScreenView({
+          await analyticsService.logScreenView({
             screen_name: currentRouteName,
             screen_class: currentRouteName,
           });

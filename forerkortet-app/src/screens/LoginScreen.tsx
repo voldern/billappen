@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -24,10 +23,14 @@ import { RootStackParamList } from "../types";
 import { theme } from "../constants/theme";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
+import { AppleSignInButton } from "../components/AppleSignInButton";
+import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { useAuth } from "../contexts/AuthContext";
 import { RouteProp } from "@react-navigation/native";
 import { CommonActions } from "@react-navigation/native";
-import analytics from "@react-native-firebase/analytics";
+import analyticsService from "../services/analyticsService";
+import { showAlert } from "../utils/alert";
+import { appleAuthService } from "../services/appleAuthService";
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -42,23 +45,29 @@ interface Props {
 }
 
 export default function LoginScreen({ navigation, route }: Props) {
-  const { signIn, loading: authLoading } = useAuth();
+  const {
+    signIn,
+    signInWithApple,
+    signInWithGoogle,
+    loading: authLoading,
+  } = useAuth();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [appleSignInAvailable, setAppleSignInAvailable] = useState(false);
 
   const styles = createStyles(insets);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Feil", "Vennligst fyll ut alle feltene");
+      showAlert("Feil", "Vennligst fyll ut alle feltene");
       return;
     }
 
     if (!email.includes("@")) {
-      Alert.alert("Feil", "Vennligst skriv inn en gyldig e-postadresse");
+      showAlert("Feil", "Vennligst skriv inn en gyldig e-postadresse");
       return;
     }
 
@@ -73,14 +82,14 @@ export default function LoginScreen({ navigation, route }: Props) {
 
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
-          Alert.alert("Feil", "Ugyldig e-post eller passord");
+          showAlert("Feil", "Ugyldig e-post eller passord");
         } else if (error.message.includes("Email not confirmed")) {
-          Alert.alert(
+          showAlert(
             "E-post ikke bekreftet",
             "Vennligst sjekk e-posten din og klikk på bekreftelseslenken før du logger inn."
           );
         } else {
-          Alert.alert(
+          showAlert(
             "Feil",
             error.message || "En feil oppstod under innlogging"
           );
@@ -89,11 +98,11 @@ export default function LoginScreen({ navigation, route }: Props) {
         // Successful login
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-        await analytics().logLogin({
+        await analyticsService.logLogin({
           method: "email",
         });
-        await analytics().setUserId(user!.uid);
-        await analytics().setUserProperty("email", email);
+        await analyticsService.setUserId(user!.uid);
+        await analyticsService.setUserProperties({"email": email});
 
         // Navigate back to landing page after successful login
         navigation.dispatch(
@@ -105,7 +114,7 @@ export default function LoginScreen({ navigation, route }: Props) {
       }
     } catch (error) {
       console.error("Login error:", error);
-      Alert.alert("Feil", "En uventet feil oppstod. Prøv igjen senere.");
+      showAlert("Feil", "En uventet feil oppstod. Prøv igjen senere.");
     } finally {
       setLoading(false);
     }
@@ -121,6 +130,105 @@ export default function LoginScreen({ navigation, route }: Props) {
 
   const handleGoBack = () => {
     navigation.goBack();
+  };
+
+  const handleAppleSignIn = async () => {
+    if (loading || authLoading) return;
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLoading(true);
+
+    try {
+      const { error, user } = await signInWithApple();
+
+      if (error) {
+        if (error.message.includes("cancelled")) {
+          // User cancelled - don't show error
+        } else {
+          showAlert(
+            "Feil",
+            error.message || "En feil oppstod under innlogging med Apple"
+          );
+        }
+      } else {
+        // Successful login
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+        await analyticsService.logLogin({
+          method: "apple",
+        });
+        await analyticsService.setUserId(user!.uid);
+        await analyticsService.setUserProperties({"email": user!.email || "apple_user"});
+
+        // Navigate back to landing page after successful login
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "Landing" }],
+          })
+        );
+      }
+    } catch (error) {
+      console.error("Apple sign in error:", error);
+      showAlert("Feil", "En uventet feil oppstod. Prøv igjen senere.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Check if Apple Sign In is available
+    const checkAppleSignIn = () => {
+      const isAvailable = appleAuthService.isAvailable();
+      setAppleSignInAvailable(isAvailable);
+    };
+    checkAppleSignIn();
+  }, []);
+
+  const handleGoogleSignIn = async () => {
+    if (loading || authLoading) return;
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLoading(true);
+
+    try {
+      const { error, user } = await signInWithGoogle();
+
+      if (error) {
+        if (error.message.includes("cancelled")) {
+          // User cancelled - don't show error
+        } else {
+          showAlert(
+            "Feil",
+            error.message || "En feil oppstod under innlogging med Google"
+          );
+        }
+      } else {
+        // Successful login
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+        await analyticsService.logLogin({
+          method: "google",
+        });
+        await analyticsService.setUserId(user!.uid);
+        await analyticsService.setUserProperties({
+          "email": user!.email || "google_user"
+        });
+
+        // Navigate back to landing page after successful login
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "Landing" }],
+          })
+        );
+      }
+    } catch (error) {
+      console.error("Google sign in error:", error);
+      showAlert("Feil", "En uventet feil oppstod. Prøv igjen senere.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -270,6 +378,36 @@ export default function LoginScreen({ navigation, route }: Props) {
                     )
                   }
                 />
+
+                {/* Divider */}
+                {(appleSignInAvailable || true) && (
+                  <View style={styles.dividerContainer}>
+                    <View style={styles.divider} />
+                    <Text style={styles.dividerText}>eller</Text>
+                    <View style={styles.divider} />
+                  </View>
+                )}
+
+                {/* Social Sign In Options */}
+                <View style={styles.socialButtonsContainer}>
+                  {/* Apple Sign In */}
+                  {appleSignInAvailable && (
+                    <AppleSignInButton
+                      onPress={handleAppleSignIn}
+                      disabled={loading || authLoading}
+                      loading={loading || authLoading}
+                      style={styles.appleButton}
+                    />
+                  )}
+
+                  {/* Google Sign In */}
+                  <GoogleSignInButton
+                    onPress={handleGoogleSignIn}
+                    disabled={loading || authLoading}
+                    loading={loading || authLoading}
+                    style={styles.googleButton}
+                  />
+                </View>
               </Card>
 
               {/* Sign Up Link */}
@@ -432,6 +570,18 @@ const createStyles = (insets: ReturnType<typeof useSafeAreaInsets>) =>
       fontSize: theme.typography.fontSize.sm,
       color: theme.colors.text.secondary,
       marginHorizontal: theme.spacing.md,
+    },
+    socialButtonsContainer: {
+      gap: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    googleButton: {
+      marginTop: theme.spacing.xs,
+      width: '100%',
+    },
+    appleButton: {
+      marginTop: theme.spacing.xs,
+      width: '100%',
       fontWeight: "600",
     },
     googleButtonContainer: {

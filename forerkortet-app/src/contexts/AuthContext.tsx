@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import { AuthUser } from "../types/auth";
 import firebaseAuthService from "../services/firebaseAuthService";
+import { appleAuthService } from "../services/appleAuthService";
+import { googleAuthService } from "../services/googleAuthService";
 
 interface AuthContextType {
-  user: FirebaseAuthTypes.User | null;
+  user: AuthUser | null;
   loading: boolean;
   signUp: (
     email: string,
@@ -13,7 +15,15 @@ interface AuthContextType {
   signIn: (
     email: string,
     password: string
-  ) => Promise<{ error?: any; user?: FirebaseAuthTypes.User }>;
+  ) => Promise<{ error?: any; user?: AuthUser }>;
+  signInWithApple: () => Promise<{
+    error?: any;
+    user?: AuthUser;
+  }>;
+  signInWithGoogle: () => Promise<{
+    error?: any;
+    user?: AuthUser;
+  }>;
   signOut: () => Promise<{ error?: any }>;
   resetPassword: (email: string) => Promise<{ error?: any }>;
 }
@@ -33,8 +43,13 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Configure Google Sign In when the app starts
+  useEffect(() => {
+    googleAuthService.configure();
+  }, []);
 
   useEffect(() => {
     // Listen for auth changes
@@ -46,8 +61,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     );
 
+    // Listen for Apple credential revocation
+    const unsubscribeApple = appleAuthService.onCredentialRevoked(async () => {
+      // Sign out if Apple credentials are revoked
+      await signOut();
+    });
+
     return () => {
       unsubscribe();
+      unsubscribeApple();
     };
   }, []);
 
@@ -77,9 +99,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
+      // Also sign out from Google if signed in
+      await googleAuthService.signOut();
       await firebaseAuthService.signOut();
       return { error: null };
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes("auth/no-current-user")
+      ) {
+        return { error: null };
+      }
+
       console.error("Sign out error:", error);
       return { error };
     }
@@ -95,11 +126,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const signInWithApple = async () => {
+    try {
+      const result = await appleAuthService.signIn();
+      if (result.error) {
+        return { error: result.error };
+      }
+      return { error: null, user: result.user };
+    } catch (error) {
+      console.error("Apple sign in error:", error);
+      return { error };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const result = await googleAuthService.signIn();
+      if (result.error) {
+        return { error: result.error };
+      }
+      return { error: null, user: result.user };
+    } catch (error) {
+      console.error("Google sign in error:", error);
+      return { error };
+    }
+  };
+
   const value: AuthContextType = {
     user,
     loading,
     signUp,
     signIn,
+    signInWithApple,
+    signInWithGoogle,
     signOut,
     resetPassword,
   };

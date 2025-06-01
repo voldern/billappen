@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert,
   Dimensions,
   StatusBar,
 } from "react-native";
@@ -30,7 +29,8 @@ import { processQuestionsWithReducedOptions } from "../utils/questionUtils";
 import { RouteProp } from "@react-navigation/native";
 import { isFeatureEnabled } from "../constants/featureFlags";
 import { selectSmartQuestions } from "../utils/questionSelection";
-import analytics from "@react-native-firebase/analytics";
+import analyticsService from "../services/analyticsService";
+import { showAlert } from "../utils/alert";
 
 type NewTestScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -83,7 +83,7 @@ export default function NewTestScreen({ navigation, route }: Props) {
       }
 
       if (selectedQuestions.length === 0) {
-        Alert.alert(
+        showAlert(
           "Feil",
           selectedCategory
             ? `Ingen spørsmål funnet i kategorien "${categoryName}".`
@@ -98,13 +98,13 @@ export default function NewTestScreen({ navigation, route }: Props) {
 
       dispatch(startTest(processedQuestions));
 
-      await analytics().logEvent("start_quick_test");
+      await analyticsService.logEvent("start_quick_test");
 
       // Navigate directly without delay
       navigation.push("Question");
     } catch (error) {
       console.error("Error starting quick test:", error);
-      Alert.alert("Feil", "Kunne ikke starte test. Prøv igjen senere.");
+      showAlert("Feil", "Kunne ikke starte test. Prøv igjen senere.");
     } finally {
       setLoading(false);
     }
@@ -127,7 +127,7 @@ export default function NewTestScreen({ navigation, route }: Props) {
       }
 
       if (allQuestions.length === 0) {
-        Alert.alert(
+        showAlert(
           "Feil",
           selectedCategory
             ? `Ingen spørsmål funnet i kategorien "${categoryName}".`
@@ -157,13 +157,13 @@ export default function NewTestScreen({ navigation, route }: Props) {
 
       dispatch(startTest(processedQuestions));
 
-      await analytics().logEvent("start_full_test");
+      await analyticsService.logEvent("start_full_test");
 
       // Navigate directly without delay
       navigation.push("Question");
     } catch (error) {
       console.error("Error starting full test:", error);
-      Alert.alert("Feil", "Kunne ikke starte test. Prøv igjen senere.");
+      showAlert("Feil", "Kunne ikke starte test. Prøv igjen senere.");
     } finally {
       setLoading(false);
     }

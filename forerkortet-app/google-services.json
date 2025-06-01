@@ -14,11 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "792835849296-39cmd24o4gfhop1j4ijv97pgptjif94c.apps.googleusercontent.com",
+          "client_id": "792835849296-f6c2082de9qg03euks5kdieok1mfft0d.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.teklos.billappen",
-            "certificate_hash": "90df6a26fc030e1e7f0e3e9130d112a4a6af39a9"
+            "certificate_hash": "5788839334d9e45a6086ab734444e41bf72d9cf0"
           }
         },
         {
@@ -37,6 +37,13 @@
             {
               "client_id": "792835849296-o9hsrp5oba62teclk0upo5ahdrcll78n.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "792835849296-630vbujbpr4f9pca62r11p0p1nau64qh.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.teklos.billappen"
+              }
             }
           ]
         }

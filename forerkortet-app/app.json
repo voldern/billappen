@@ -18,7 +18,8 @@
       "bundleIdentifier": "com.teklos.billappen",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "usesAppleSignIn": true
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -30,9 +31,11 @@
       "package": "com.teklos.billappen"
     },
     "plugins": [
+      "@react-native-google-signin/google-signin",
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "@react-native-firebase/crashlytics",
+      "expo-apple-authentication",
       [
         "expo-build-properties",
         {

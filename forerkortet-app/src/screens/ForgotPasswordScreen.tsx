@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -32,7 +31,8 @@ import { theme } from "../constants/theme";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { useAuth } from "../contexts/AuthContext";
-import analytics from "@react-native-firebase/analytics";
+import analyticsService from "../services/analyticsService";
+import { showAlert } from "../utils/alert";
 
 type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -82,12 +82,12 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
 
   const handleResetPassword = async () => {
     if (!email) {
-      Alert.alert("Feil", "Vennligst skriv inn e-postadressen din");
+      showAlert("Feil", "Vennligst skriv inn e-postadressen din");
       return;
     }
 
     if (!email.includes("@")) {
-      Alert.alert("Feil", "Vennligst skriv inn en gyldig e-postadresse");
+      showAlert("Feil", "Vennligst skriv inn en gyldig e-postadresse");
       return;
     }
 
@@ -98,7 +98,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       const { error } = await resetPassword(email.trim().toLowerCase());
 
       if (error) {
-        Alert.alert(
+        showAlert(
           "Feil",
           error.message || "En feil oppstod under sending av e-post"
         );
@@ -108,9 +108,9 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       }
     } catch (error) {
       console.error("Reset password error:", error);
-      Alert.alert("Feil", "En uventet feil oppstod. Prøv igjen senere.");
+      showAlert("Feil", "En uventet feil oppstod. Prøv igjen senere.");
     } finally {
-      await analytics().logEvent("reset_password", {
+      await analyticsService.logEvent("reset_password", {
         email: email,
       });
 
