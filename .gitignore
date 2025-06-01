@@ -1,3 +1,9 @@
 .claude
 .vscode
 node_modules
+
+# Firebase Admin SDK key - NEVER commit this!
+firebase-admin-key.json
+forerkortet-app/firebase-admin-key.json
+
+.DS_Store

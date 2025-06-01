@@ -9,12 +9,15 @@ import LandingScreen from "../screens/LandingScreen";
 import LoginScreen from "../screens/LoginScreen";
 import SignupScreen from "../screens/SignupScreen";
 import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
-import ResultsListScreen from "../screens/ResultsListScreen";
-import CategorySelectionScreen from "../screens/CategorySelectionScreen";
-import NewTestScreen from "../screens/NewTestScreen";
-import QuestionScreen from "../screens/QuestionScreen";
-import TestResultsScreen from "../screens/TestResultsScreen";
-import ProgressScreen from "../screens/ProgressScreen";
+import LoadingScreen from "../screens/LoadingScreen";
+import {
+  ProtectedResultsListScreen,
+  ProtectedCategorySelectionScreen,
+  ProtectedNewTestScreen,
+  ProtectedQuestionScreen,
+  ProtectedTestResultsScreen,
+  ProtectedProgressScreen,
+} from "../screens/protected";
 import { theme } from "../constants/theme";
 import { useAuth } from "../contexts/AuthContext";
 import analyticsService from "../services/analyticsService";
@@ -98,12 +101,12 @@ export default function AppNavigator() {
         />
         <Stack.Screen
           name="ResultsList"
-          component={ResultsListScreen}
+          component={ProtectedResultsListScreen}
           options={{ title: "Dine Resultater" }}
         />
         <Stack.Screen
           name="CategorySelection"
-          component={CategorySelectionScreen}
+          component={ProtectedCategorySelectionScreen}
           options={{
             headerShown: false,
             animation: "simple_push",
@@ -111,12 +114,12 @@ export default function AppNavigator() {
         />
         <Stack.Screen
           name="NewTest"
-          component={NewTestScreen}
+          component={ProtectedNewTestScreen}
           options={{ title: "Ny Test" }}
         />
         <Stack.Screen
           name="Question"
-          component={QuestionScreen}
+          component={ProtectedQuestionScreen}
           options={{
             title: "Spørsmål",
             headerBackVisible: false,
@@ -125,7 +128,7 @@ export default function AppNavigator() {
         />
         <Stack.Screen
           name="TestResults"
-          component={TestResultsScreen}
+          component={ProtectedTestResultsScreen}
           options={{
             title: "Testresultater",
             headerBackVisible: false,
@@ -134,7 +137,7 @@ export default function AppNavigator() {
         />
         <Stack.Screen
           name="Progress"
-          component={ProgressScreen}
+          component={ProtectedProgressScreen}
           options={{
             title: "Fremgang",
             headerShown: false,

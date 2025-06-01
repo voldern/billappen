@@ -128,6 +128,15 @@ export default function LandingScreen({ navigation }: Props) {
   };
 
   const handleNavigation = (screen: keyof RootStackParamList) => {
+    // Check if user is authenticated for protected screens
+    const protectedScreens = ['Progress', 'CategorySelection', 'NewTest', 'ResultsList'];
+    
+    if (protectedScreens.includes(screen) && !user) {
+      // Redirect to login for protected screens
+      navigation.push('Login');
+      return;
+    }
+    
     // Always push new screens to avoid the old navigate back behavior
     navigation.push(screen as any);
   };
